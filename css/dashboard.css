@@ -1,0 +1,51 @@
+#totalized-area {
+	background: rgb(255, 212, 0);
+	width: 100%;
+	text-align: center;
+	color: green;
+}
+#totalized-alerts {
+	background: rgb(0, 39, 8);
+	width: 100%;
+	text-align: center;
+	color: white;
+}
+.ring-charts {
+	width:100%;
+	height:100%;
+}
+.timeline-charts{
+	width:100%;
+	height:100%;
+}
+.bar-charts {
+	width:100%;
+	height:100%;
+}
+.all-charts {
+	fill: #FFF7D0;
+	font-weight: bold;
+}
+.all-charts-title {
+	text-align: center;
+	font-weight: bold;
+	text-decoration: underline;
+}
+.divButton {
+	background-color: white;
+}
+.dc-chart g.row text, .pie-slice {
+	fill: black;
+}
+.jumbotron{
+	background-color: inherit;
+}
+body{
+	background-color: rgb(57, 104, 88);
+}
+.input_radio{
+	position: absolute;
+    right: 93%;
+    width: 18px;
+    height: 18px;
+}
