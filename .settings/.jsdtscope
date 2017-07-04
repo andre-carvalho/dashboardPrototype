@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="js"/>
+	<classpathentry kind="src" path="libs/bootstrap"/>
+	<classpathentry kind="src" path="libs/crossfilter"/>
+	<classpathentry kind="src" path="libs/d3"/>
+	<classpathentry excluding="spec/helpers/|grunt/|web/js/|web/examples/|web/transitions/|web/highlighter/|regression/|spec/|web/ep/|web/|src/|docs/" kind="src" path="libs/dc-2.0"/>
+	<classpathentry kind="src" path="libs/dc-2.0/docs"/>
+	<classpathentry kind="src" path="libs/dc-2.0/grunt"/>
+	<classpathentry kind="src" path="libs/dc-2.0/regression"/>
+	<classpathentry excluding="helpers/" kind="src" path="libs/dc-2.0/spec"/>
+	<classpathentry kind="src" path="libs/dc-2.0/spec/helpers"/>
+	<classpathentry kind="src" path="libs/dc-2.0/src"/>
+	<classpathentry excluding="js/|examples/|transitions/|highlighter/|ep/" kind="src" path="libs/dc-2.0/web"/>
+	<classpathentry kind="src" path="libs/dc-2.0/web/ep"/>
+	<classpathentry kind="src" path="libs/dc-2.0/web/examples"/>
+	<classpathentry kind="src" path="libs/dc-2.0/web/highlighter"/>
+	<classpathentry kind="src" path="libs/dc-2.0/web/js"/>
+	<classpathentry kind="src" path="libs/dc-2.0/web/transitions"/>
+	<classpathentry kind="src" path="libs/filesaver"/>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path=""/>
+</classpath>

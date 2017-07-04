@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    	<title>TerraBrasilis Dashboard</title>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=0">
+
+        <!-- <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Droid+Sans'> -->
+		<link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css">
+    	<link rel="stylesheet" type="text/css" href="./libs/dc-2.0/dc.css"/>
+    	<link rel="stylesheet" type="text/css" href="./css/dashboard.css">
+
+    </head>
+    <body onload="makeMonthlyGraphs();makeAnnualGraphs();">
+
+       <div id="chartsArea" class="container-fluid">
+      </div>
+        <!-- script type="text/javascript" src="./data/deter_agreg_dashboard.json"></script -->
+        <!-- script src="https://d3js.org/d3.v4.min.js"></script -->
+        <script type="text/javascript" src="./libs/d3/v4/d3.js"></script>
+        <script type="text/javascript" src="./js/svg-to-image.js"></script>
+        <!-- 
+		<script type="text/javascript" src="./libs/d3/d3.js"></script>
+		<script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
+		<script type="text/javascript" src="./libs/dc-2.0/dc.js"></script>
+		<script type="text/javascript" src="./libs/filesaver/FileSaver.js"></script>
+		-->
+		<!-- <script type="text/javascript" src="./libs/bootstrap/bootstrap-3.2.0.min.js"></script>  -->
+        <script type="text/javascript" src="./js/dashboard-deter-b-agreg.js"></script>
+
+    </body>
+</html>

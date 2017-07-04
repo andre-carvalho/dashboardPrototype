@@ -21,6 +21,7 @@ var dashBoard={
 		this.totalizedAreaInfoBox = dc.numberDisplay("#totalized-area");
 		this.totalizedAlertsInfoBox = dc.numberDisplay("#totalized-alerts");
 		this.lineDistributionByMonth = dc.barChart("#chart-line-by-month");
+		this.compositeBarChartPRODES = dc.compositeChart("#compositeBarChartPRODES");
 		this.ringTotalizedByClass = dc.pieChart("#chart-ring-by-class");
 		this.histTopByCounties = dc.rowChart("#chart-hist-top-counties");
 		this.ringTotalizedByState = dc.pieChart("#chart-ring-by-state");
@@ -52,6 +53,7 @@ var dashBoard={
 	
 	resetFilters:function() {
 		this.lineDistributionByMonth.filterAll();
+		this.compositeBarChartPRODES.filterAll();
 		this.ringTotalizedByClass.filterAll();
 		this.histTopByCounties.filterAll();
 		this.ringTotalizedByState.filterAll();
@@ -129,46 +131,64 @@ var dashBoard={
 		var dimensions=[];
 		// set crossfilter
 		var alerts = crossfilter(this.jsonData);
+		
 		dimensions["area"] = alerts.dimension(function(d) {return d.areaKm;}),//alertsAreaDim
 		dimensions["county"] = alerts.dimension(function(d) {return d.county+"/"+d.uf;}),//alertsCountyDim
 		dimensions["class"] = alerts.dimension(function(d) {return d.className;}),//alertsClassDim
 		dimensions["date"] = alerts.dimension(function(d) {return d.timestamp;}),//alertsDateDim
+		dimensions["month"] = alerts.dimension(function(d) {return (new Date(d.timestamp)).getMonth()+1;}),//alertsMonthDim
 		dimensions["uf"] = alerts.dimension(function(d) {return d.uf;});//alertsStateDim
 		dimensions["uc"] = alerts.dimension(function(d) {return d.uc+"/"+d.uf;});//alertsUCDim
 		
 		var totalAreaGroup = alerts.groupAll().reduce(
-		            function (p, v) {
-		                ++p.n;
-		                p.tot += v.areaKm;
-		                return p;
-		            },
-		            function (p, v) {
-		                --p.n;
-		                p.tot -= v.areaKm;
-		                return p;
-		            },
-		            function () { return {n:0,tot:0}; }
-		        ),
+	            function (p, v) {
+	                ++p.n;
+	                p.tot += v.areaKm;
+	                return p;
+	            },
+	            function (p, v) {
+	                --p.n;
+	                p.tot -= v.areaKm;
+	                return p;
+	            },
+	            function () { return {n:0,tot:0}; }
+	        ),
 		    totalAlertsGroup = alerts.groupAll().reduce(
-		            function (p, v) {
-		                ++p.n;
-		                return p;
-		            },
-		            function (p, v) {
-		                --p.n;
-		                return p;
-		            },
-		            function () { return {n:0,tot:0}; }
-		        );
+	            function (p, v) {
+	                ++p.n;
+	                return p;
+	            },
+	            function (p, v) {
+	                --p.n;
+	                return p;
+	            },
+	            function () { return {n:0,tot:0}; }
+	        ),
+	        totalAreaByMonthGroup = alerts.groupAll().reduce(
+	            function (p, v) {
+	                ++p.n;
+	                p.c1 += ( (p.className=="DESMATAMENTO_CR")?(v.areaKm):(0) );
+	                p.c2 += ( (p.className=="CORTE_SELETIVO")?(v.areaKm):(0) );
+	                return p;
+	            },
+	            function (p, v) {
+	                --p.n;
+	                p.c1 -= ( (p.className=="DESMATAMENTO_CR")?(v.areaKm):(0) );
+	                p.c2 -= ( (p.className=="CORTE_SELETIVO")?(v.areaKm):(0) );
+	                return p;
+	            },
+	            function () { return {n:0,"DESMATAMENTO_CR":0,"CORTE_SELETIVO":0,"DEGRADACAO":0,"CS_DESORDENADO":0,"DESMATAMENTO_VEG":0,"MINERACAO":0}; }
+	        );
 		
 		var groups=[];
+		//groups["month"] = dimensions["month"].groupAll().reduce(function(d) {return {clazz:d.className,area:d.areaKm};});
 		if(dashBoard.config.defaultDimension=="area") {
 			groups["class"] = dimensions["class"].group().reduceSum(function(d) {return +d.areaKm;}),//sumAreasByClassGroup
 			groups["county"] = dimensions["county"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByCountyGroup
 			groups["uf"] = dimensions["uf"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByStateGroup
 			groups["date"] = dimensions["date"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByDateGroup
 			groups["uc"] = dimensions["uc"].group().reduceSum(function(d) {return (d.uc!='null')?(+d.areaKm):(0);});//alertsAreaByUCGroup
-		}else{
+		}else {
 			groups["class"] = dimensions["class"].group().reduceCount(function(d) {return d.className;}),//sumAreasByClassGroup
 			groups["county"] = dimensions["county"].group().reduceCount(function(d) {return d.county;}),//alertsAreaByCountyGroup
 			groups["uf"] = dimensions["uf"].group().reduceCount(function(d) {return d.uf;}),//alertsAreaByStateGroup
@@ -199,10 +219,10 @@ var dashBoard={
 	      })
 	      .group(totalAlertsGroup);
 		
-		this.buildCharts(dimensions, groups);
+		this.buildCharts(dimensions, groups, totalAreaByMonthGroup);
 	},
 	
-	buildCharts:function(dimensions,groups) {
+	buildCharts:function(dimensions, groups, totalAreaByMonthGroup) {
 		
 		var alertsMaxDate = dimensions["date"].top(1),
 		alertsMinDate = dimensions["date"].bottom(1);
@@ -247,7 +267,102 @@ var dashBoard={
 		});
 
 		// -----------------------------------------------------------------------
-		
+
+//        this.compositeBarChartPRODES
+        // "DESMATAMENTO_CR":0,"CORTE_SELETIVO":0,"DEGRADACAO":0,"CS_DESORDENADO":0,"DESMATAMENTO_VEG":0,"MINERACAO":0
+        var DESMATAMENTO_CR = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["date"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	/*
+        	var r=0;
+        	if(d.className=="DESMATAMENTO_CR") {
+        		r=d.area;
+        	}*/
+            return d.c1;
+        });
+        
+        var CORTE_SELETIVO = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["date"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	/*
+        	var r=0;
+        	if(d.className=="CORTE_SELETIVO") {
+        		r=d.area;
+        	}*/
+            return d.c2;
+        });
+        /*
+        var DEGRADACAO = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["month"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	var r=0;
+        	if(d.n) {
+        		r=d["DEGRADACAO"];
+        	}
+            return r;
+        });
+        
+        var CS_DESORDENADO = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["month"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	var r=0;
+        	if(d.n) {
+        		r=d["CS_DESORDENADO"];
+        	}
+            return r;
+        });
+        
+        var DESMATAMENTO_VEG = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["month"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	var r=0;
+        	if(d.n) {
+        		r=d["DESMATAMENTO_VEG"];
+        	}
+            return r;
+        });
+        
+        var MINERACAO = dc.barChart(this.compositeBarChartPRODES)
+        .gap(65)
+        .dimension(dimensions["month"])
+        .group(totalAreaByMonthGroup)
+        .valueAccessor(function (d) {
+        	var r=0;
+        	if(d.n) {
+        		r=d["MINERACAO"];
+        	}
+            return r;
+        });
+        */
+        this.compositeBarChartPRODES
+        .elasticY(true)
+        .x(x)
+        .xUnits(d3.time.months)
+        .round(d3.time.month.round)
+        .renderHorizontalGridLines(true)
+        .compose([DESMATAMENTO_CR, CORTE_SELETIVO])
+        .brushOn(false);//, DEGRADACAO, CS_DESORDENADO, DESMATAMENTO_VEG, MINERACAO])
+        
+        /*.margins({top: 10, right: 15, bottom: 35, left: 40})
+        .x(d3.scale.linear().domain([0,12]))
+        .brushOn(false)
+        .dimension(dimensions["month"])
+        .group(groups["area"])
+        .elasticY(true);*/
+        
+        // End compositeBarChartPRODES
+		// -----------------------------------------------------------------------
+        
 		// build graph areas or alerts by class
 		dashBoard.utils.setTitle('class','%Dim% por classes');
 
