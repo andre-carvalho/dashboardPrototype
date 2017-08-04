@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>dc.js - Series Example</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css">
+   	<link rel="stylesheet" type="text/css" href="./libs/dc-2.1/dc.css"/>
+   	<link rel="stylesheet" type="text/css" href="./css/lineComposite.css">
+</head>
+<body>
+<div class="container">
+	<div class="row">
+		<div class="col-md-12">
+			<div id="test"></div>
+			<div id="test-overview"></div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4">
+			<div id="chart-by-state"></div>
+		</div>
+		<div class="col-md-4">
+			<div id="chart-by-class"></div>
+		</div>
+		<div class="col-md-4">
+			<div id="chart-by-year"></div>
+		</div>
+	</div>
+</div>
+
+<!--
+<table border="1" style="width: 95%; height: 250px;">
+	<tr><td>
+		<div>
+			Ano:<select id="years" multiple="multiple" onchange="graph.filterByYear(this);">
+			<optgroup label="Multiseleção"></optgroup></select>
+			Classes:<select id="classes" multiple="multiple" onchange="graph.filterByClass(this);">
+			<optgroup label="Multiseleção"></optgroup></select>
+			Estados:<select id="states" multiple="multiple" onchange="graph.filterByState(this);">
+			<optgroup label="Multiseleção"></optgroup></select>
+			<input type="button" onclick="graph.filterAll()" value="reset">
+		</div>
+	</td></tr>
+	<tr><td>
+	Filtros:
+	<div id="filter-output"></div>
+	</td></tr>
+</table>
+-->
+<script type="text/javascript" src="./libs/d3/v3/d3.min.js"></script>
+<script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
+<script type="text/javascript" src="./libs/dc-2.1/dc.js"></script>
+<script type="text/javascript" src="./js/lineComposite.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    	<title>TerraBrasilis Dashboard</title>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=0">
+
+        <!-- <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Droid+Sans'> -->
+		<link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css">
+    	<link rel="stylesheet" type="text/css" href="./libs/dc-2.0/dc.css"/>
+    	<link rel="stylesheet" type="text/css" href="./css/dashboard.css">
+
+    </head>
+    <body>
+
+       <div class="container-fluid">
+
+    	   <div class="jumbotron">
+				<div class="row">
+					<div class="col-md-6">
+						<div id="totalized-area">
+							<input title="Ver gráficos com base no somatório de áreas em km²." class="input_radio"  style="margin-top: 18px;margin-right: -20px;"
+							id="radio_area" name="set_dim" type="radio" onclick="dashBoard.setDimension('area');" checked="checked">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div id="totalized-alerts">
+							<input title="Ver gráficos com base na contagem do número de alertas." class="input_radio" style="margin-top: 18px;margin-right: -20px;"
+							id="radio_alert" name="set_dim" type="radio" onclick="dashBoard.setDimension('alert');">
+						</div>
+					</div>
+				</div>
+				<br/>
+				<div class="row">
+					<div class="col-md-12">
+						<div id="chart-line-by-month" class="all-charts timeline-charts">
+							<div id="title-chart-timeline" class="all-charts-title"></div>
+							<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.lineDistributionByMonth.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br/>
+				<br/>
+				<div class="row">
+					<div class="col-md-12">
+						<div id="chart-aggreg" class="all-charts timeline-charts">
+							<div id="title-chart-aggreg" class="all-charts-title"></div>
+							<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.lineAggregation.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br/>
+				<br/>
+				<div class="row">
+					<div class="col-md-6">
+						<div id="chart-ring-by-class" class="all-charts ring-charts">
+							<div id="title-chart-class" class="all-charts-title"></div>
+							<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.ringTotalizedByClass.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div id="chart-hist-top-counties" class="all-charts bar-charts">
+							<div id="title-chart-counties" class="all-charts-title"></div>
+							<div class="reset" style="visibility: hidden;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.histTopByCounties.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br/>
+				<div class="row">
+					<div class="col-md-6">
+						<div id="chart-ring-by-state" class="all-charts ring-charts">
+							<div id="title-chart-state" class="all-charts-title"></div>
+							<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.ringTotalizedByState.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div id="chart-hist-top-ucs" class="all-charts bar-charts">
+							<div id="title-chart-ucs" class="all-charts-title"></div>
+							<div class="reset" style="visibility: hidden;">Filtro: <span class="filter"></span>
+								<a href="javascript:dashBoard.histTopByUCs.filterAll();dc.redrawAll();">limpar</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br/>
+				<div class="row">
+					<div class="col-md-12">
+						<div style="clear: both; color: black;">
+							<button id="download" class="btn btn-primary btn-lg btn-block" title="baixar os dados brutos, utilizados neste painel, em formato CSV.">
+							Download CSV <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+      </div>
+        <script type="text/javascript" src="./data/deter_dashboard_date_simple.json"></script>
+		<script type="text/javascript" src="./libs/d3/v3/d3.min.js"></script>
+		<script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
+		<script type="text/javascript" src="./libs/dc-2.0/dc.js"></script>
+		<script type="text/javascript" src="./libs/filesaver/FileSaver.js"></script>
+		<!-- <script type="text/javascript" src="./libs/bootstrap/bootstrap-3.2.0.min.js"></script>  -->
+        <script type="text/javascript" src="./js/dashboard-deter-b.js"></script>
+
+    </body>
+</html>

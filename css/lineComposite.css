@@ -1,0 +1,14 @@
+body{
+	background-color: white;
+}
+.container{
+	margin-right: 10px;
+	margin-left: 10px;
+	width: 99%;
+}
+.dc-chart path.line {
+	stroke-width: 3px;
+}
+circle, .dot {
+	r: 5px;
+}

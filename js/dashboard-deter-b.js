@@ -4,10 +4,12 @@ var dashBoard={
 	alerts:{},
 	config:{},
 	selectedFilters:{},
+	crossFilter:null,
 	
 	totalizedAreaInfoBox:undefined,// totalized area info box
 	totalizedAlertsInfoBox:undefined,// totalized alerts info box
 	lineDistributionByMonth:undefined,
+	lineAggregation:undefined,
 	ringTotalizedByClass:undefined,
     histTopByCounties:undefined,
     ringTotalizedByState:undefined,
@@ -21,7 +23,7 @@ var dashBoard={
 		this.totalizedAreaInfoBox = dc.numberDisplay("#totalized-area");
 		this.totalizedAlertsInfoBox = dc.numberDisplay("#totalized-alerts");
 		this.lineDistributionByMonth = dc.barChart("#chart-line-by-month");
-		this.compositeBarChartPRODES = dc.compositeChart("#compositeBarChartPRODES");
+		//this.lineAggregation = dc.compositeChart("#chart-aggreg");
 		this.ringTotalizedByClass = dc.pieChart("#chart-ring-by-class");
 		this.histTopByCounties = dc.rowChart("#chart-hist-top-counties");
 		this.ringTotalizedByState = dc.pieChart("#chart-ring-by-state");
@@ -40,9 +42,29 @@ var dashBoard={
 		if(error) {
 	    	console.log(error);
 		}else{
-			dashBoard.jsonData = data;
+			dashBoard.jsonData = data.features;
+			dashBoard.normalizeData();
 			dashBoard.build();
 		}
+	},
+	
+	normalizeData:function() {
+        var numberFormat = d3.format('.4f');
+	    var json=[];
+        // normalize/parse data
+        this.jsonData.forEach(function(d) {
+            var o={uf:d.properties.h,className:d.properties.c,county:d.properties.i};
+            o.uc = (d.properties.j)?(d.properties.j):('null');
+            var auxDate = new Date(d.properties.g + 'T04:00:00.000Z');
+            o.timestamp = auxDate.getTime();
+            o.areaKm = numberFormat(d.properties.e)*1;
+            o.areaUcKm = ((d.properties.f)?(numberFormat(d.properties.f)*1):(0));
+
+            json.push(o);
+        });
+
+        this.jsonData=json;
+        delete json;
 	},
 	
 	setDimension: function(dim) {
@@ -53,7 +75,7 @@ var dashBoard={
 	
 	resetFilters:function() {
 		this.lineDistributionByMonth.filterAll();
-		this.compositeBarChartPRODES.filterAll();
+		//this.lineAggregation.filterAll();
 		this.ringTotalizedByClass.filterAll();
 		this.histTopByCounties.filterAll();
 		this.ringTotalizedByState.filterAll();
@@ -121,81 +143,153 @@ var dashBoard={
 		
 		//var dateFormat = d3.time.format('%Y-%m-%d');
 	    var numberFormat = d3.format('.4f');
+	    var years=[], month=[];
 	    
 		// normalize/parse data
 		this.jsonData.forEach(function(d) {
-		    var auxDate = new Date(d.date+'T10:00:00Z');
-		    d.timestamp = auxDate.getTime();
 		    d.areaKm = numberFormat(d.areaKm)*1;
+
+		    /*
+		    var dt=new Date(d.timestamp), fy=dt.getFullYear(), mn = dt.getMonth()+1;
+		    if(years.indexOf(fy)<0) {
+		    	years.push(fy);
+		    }
+		    if(month.indexOf(mn)<0) {
+		    	month.push(mn);
+		    }
+		    if(!d[""+fy]) {
+				d[""+fy] = {};
+			}
+		    if(!d[""+fy][""+mn]) {
+		    	d[""+fy][""+mn] = 0;
+		    }
+			d[""+fy][""+mn] += d.areaKm;
+		    d.m=mn;
+		    d.y=fy;*/
 		});
 		var dimensions=[];
 		// set crossfilter
 		var alerts = crossfilter(this.jsonData);
-		
+		dashBoard.crossFilter=alerts;
 		dimensions["area"] = alerts.dimension(function(d) {return d.areaKm;}),//alertsAreaDim
 		dimensions["county"] = alerts.dimension(function(d) {return d.county+"/"+d.uf;}),//alertsCountyDim
 		dimensions["class"] = alerts.dimension(function(d) {return d.className;}),//alertsClassDim
 		dimensions["date"] = alerts.dimension(function(d) {return d.timestamp;}),//alertsDateDim
-		dimensions["month"] = alerts.dimension(function(d) {return (new Date(d.timestamp)).getMonth()+1;}),//alertsMonthDim
 		dimensions["uf"] = alerts.dimension(function(d) {return d.uf;});//alertsStateDim
 		dimensions["uc"] = alerts.dimension(function(d) {return d.uc+"/"+d.uf;});//alertsUCDim
+		//dimensions["month"] = alerts.dimension(function(d) {return d.m+"/"+d.y;});
+		
+		/*
+		for(var y=0;y<years.length;y++) {
+			for(var m=0;m<month.length;m++) {
+				if(!dimensions[""+years[y]]) {
+					dimensions[""+years[y]] = {};
+				}
+				dimensions[""+years[y]][""+month[m]] = alerts.dimension(function(d) {
+					return (d[""+years[y]])?d[""+years[y]][""+month[m]]:0;
+				});
+			}
+		}
+*/
 		
 		var totalAreaGroup = alerts.groupAll().reduce(
-	            function (p, v) {
-	                ++p.n;
-	                p.tot += v.areaKm;
-	                return p;
-	            },
-	            function (p, v) {
-	                --p.n;
-	                p.tot -= v.areaKm;
-	                return p;
-	            },
-	            function () { return {n:0,tot:0}; }
-	        ),
-		    totalAlertsGroup = alerts.groupAll().reduce(
-	            function (p, v) {
-	                ++p.n;
-	                return p;
-	            },
-	            function (p, v) {
-	                --p.n;
-	                return p;
-	            },
-	            function () { return {n:0,tot:0}; }
-	        ),
-	        totalAreaByMonthGroup = alerts.groupAll().reduce(
-	            function (p, v) {
-	                ++p.n;
-	                p.c1 += ( (p.className=="DESMATAMENTO_CR")?(v.areaKm):(0) );
-	                p.c2 += ( (p.className=="CORTE_SELETIVO")?(v.areaKm):(0) );
-	                return p;
-	            },
-	            function (p, v) {
-	                --p.n;
-	                p.c1 -= ( (p.className=="DESMATAMENTO_CR")?(v.areaKm):(0) );
-	                p.c2 -= ( (p.className=="CORTE_SELETIVO")?(v.areaKm):(0) );
-	                return p;
-	            },
-	            function () { return {n:0,"DESMATAMENTO_CR":0,"CORTE_SELETIVO":0,"DEGRADACAO":0,"CS_DESORDENADO":0,"DESMATAMENTO_VEG":0,"MINERACAO":0}; }
-	        );
+            function (p, v) {
+                ++p.n;
+                p.tot += v.areaKm;
+                return p;
+            },
+            function (p, v) {
+                --p.n;
+                p.tot -= v.areaKm;
+                return p;
+            },
+            function () { return {n:0,tot:0}; }
+        ),
+	    totalAlertsGroup = alerts.groupAll().reduce(
+            function (p, v) {
+                ++p.n;
+                return p;
+            },
+            function (p, v) {
+                --p.n;
+                return p;
+            },
+            function () { return {n:0}; }
+        );
+		
+		/*
+		var totalAreaMonthYear = {};
+		for(var y=0;y<years.length;y++) {
+			for(var m=0;m<month.length;m++) {
+				if(!totalAreaMonthYear[years[y]]) {
+					totalAreaMonthYear[years[y]] = {};
+				}
+				totalAreaMonthYear[years[y]][month[m]] = alerts.groupAll().reduce(
+			        function (p, v) {
+			        	if(v.y==month[m]+"-"+years[y]) {
+				            ++p.n;
+				            p.t += v.areaKm;
+			        	}else{
+			        		p.n=0;
+			        		p.t=0;
+			        	}
+			            return p;
+			        },
+			        function (p, v) {
+			        	if(v.y==month[m]+"-"+years[y]) {
+				            --p.n;
+				            p.t -= v.areaKm;
+			        	}else{
+			        		p.n=0;
+			        		p.t=0;
+			        	}
+			            return p;
+			        },
+			        function () { return {n:0,t:0}; }
+			    );
+			}
+		}
+		
+		var aggregLines=[];
+		for(var y=0;y<years.length;y++) {
+			for(var m=0;m<month.length;m++) {
+				aggregLines.push(dc.lineChart(this.lineAggregation).group(totalAreaMonthYear[years[y]][month[m]]));
+			}
+		}
+		
+		*/
+		
+		
 		
 		var groups=[];
-		//groups["month"] = dimensions["month"].groupAll().reduce(function(d) {return {clazz:d.className,area:d.areaKm};});
 		if(dashBoard.config.defaultDimension=="area") {
 			groups["class"] = dimensions["class"].group().reduceSum(function(d) {return +d.areaKm;}),//sumAreasByClassGroup
 			groups["county"] = dimensions["county"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByCountyGroup
 			groups["uf"] = dimensions["uf"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByStateGroup
 			groups["date"] = dimensions["date"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByDateGroup
+			//groups["month"] = dimensions["month"].group().reduceSum(function(d) {return +d.areaKm;}),//alertsAreaByYearGroup
 			groups["uc"] = dimensions["uc"].group().reduceSum(function(d) {return (d.uc!='null')?(+d.areaKm):(0);});//alertsAreaByUCGroup
-		}else {
+		}else{
 			groups["class"] = dimensions["class"].group().reduceCount(function(d) {return d.className;}),//sumAreasByClassGroup
 			groups["county"] = dimensions["county"].group().reduceCount(function(d) {return d.county;}),//alertsAreaByCountyGroup
 			groups["uf"] = dimensions["uf"].group().reduceCount(function(d) {return d.uf;}),//alertsAreaByStateGroup
 			groups["date"] = dimensions["date"].group().reduceCount(function(d) {return +d.timestamp;}),//alertsAreaByDateGroup
+			//groups["month"] = dimensions["month"].group().reduceCount(function(d) {return +d.timestamp;}),//alertsAreaByYearGroup
 			groups["uc"] = dimensions["uc"].group().reduceSum(function(d) {return (d.uc!='null')?(1):(0);});//alertsAreaByUCGroup
 		}
-		
+		/*
+		var aggregLines=[];
+		for(var y=0;y<years.length;y++) {
+			for(var m=0;m<month.length;m++) {
+				
+				var gMonth = dimensions["'"+years[y]+"'"]["'"+month[m]+"'"].group().reduceSum(function(d) {
+					return +d.areaKm;
+				});
+				
+				aggregLines.push(dc.lineChart(this.lineAggregation).group(gMonth));
+			}
+		}
+		*/
 		this.totalizedAreaInfoBox.formatNumber(d3.format('.1f'));
 		this.totalizedAreaInfoBox.valueAccessor(function(d) {return d.n ? d.tot.toFixed(1) : 0;})
 	      .html({
@@ -219,10 +313,15 @@ var dashBoard={
 	      })
 	      .group(totalAlertsGroup);
 		
-		this.buildCharts(dimensions, groups, totalAreaByMonthGroup);
+		//this.buildCharts(dimensions, groups, aggregLines);
+		this.buildCharts(dimensions, groups);
 	},
 	
-	buildCharts:function(dimensions, groups, totalAreaByMonthGroup) {
+	changeSelectedYear:function(list) {
+		console.log(list[list.selectedIndex].value);
+	},
+	
+	buildCharts:function(dimensions,groups) {
 		
 		var alertsMaxDate = dimensions["date"].top(1),
 		alertsMinDate = dimensions["date"].bottom(1);
@@ -254,115 +353,112 @@ var dashBoard={
 					.scale(x)
 					.orient("bottom")
 					.ticks(d3.time.months)
-					.tickFormat(d3.time.format( (chart.effectiveWidth()<dashBoard.config.minWidth)?("%b/%Y"):("%d/%b")))
+					.tickFormat(d3.time.format("%b/%Y"))
 					//.ticks((chart.effectiveWidth()<dashBoard.config.minWidth)?(d3.time.months):(d3.time.weeks))
 				);
 			});
+		
+		this.lineDistributionByMonth
+		.on('filtered', function(chart, filter) {
+			console.log('CURRENT:'+chart.filters()[0]);
+			console.log('NEW:'+filter);
+		});
 
         this.lineDistributionByMonth
+		.filterPrinter(function(f) {
+			var dt=f[0][0];
+			dt.setDate(dt.getDate()+1);
+			dashBoard.selectedFilters.startDate=dt;
+            dashBoard.selectedFilters.endDate=f[0][1];
+			return dt.toLocaleDateString() + ' - ' + f[0][1].toLocaleDateString();
+		});
+
+		// -----------------------------------------------------------------------
+        
+		// build aggregation chart
+		// -----------------------------------------------------------------------
+      /*  
+        var minYear=(new Date(alertsMinDate[0].timestamp)).getFullYear();
+        var maxYears=(new Date(alertsMaxDate[0].timestamp)).getFullYear();
+        var selectYears='<select class="selectpicker" onchange="dashBoard.changeSelectedYear(this);">';
+        for(var s=minYear;s<=maxYears;s++) {
+        	selectYears+='<option value="'+s+'">'+s+'</option>';
+        }
+        selectYears+='</select>';
+        
+		dashBoard.utils.setTitle('aggreg','Distribuição de %dim% no tempo (granularidade mensal para o ano '+selectYears+')');
+
+		var startRange=new Date(minYear+'-01-01');
+		startRange.setUTCHours(+2);
+		var endRange=new Date(minYear+'-12-31');
+		endRange.setUTCHours(+2);
+		var xa = d3.time.scale().domain([startRange,endRange]);*/
+		/*
+		this.lineAggregation
+			.margins({top: 10, right: 15, bottom: 35, left: 40})
+			.dimension(dimensions["month"])
+			.transitionDuration(300)
+			.elasticY(true)
+			.brushOn(false)
+			.valueAccessor(function (d) {
+			    return d.value;
+			})
+			.title(function (d) {
+			    return "\nNumber of properties: " + d.key;
+			
+			})
+			.x(d3.scale.linear().domain([1, 12]))
+			.compose(aggregLines);
+		*/
+		
+/*		this.lineAggregation
+			.margins({top: 10, right: 15, bottom: 35, left: 40})
+			.yAxisLabel(dashBoard.utils.wildcardExchange("%Unit%"))
+			.xAxisLabel( startRange.toLocaleDateString() + " - " + endRange.toLocaleDateString() )
+			.dimension(dimensions["year"])
+			.group(groups["year"])
+			.transitionDuration(300)
+			.elasticY(true)
+			.brushOn(false)
+			.valueAccessor(function (d) {
+			    return d.value;
+			})
+			.title(function (d) {
+			    return "\nNumber of Povetry: " + d.key;
+			
+			})
+			.x(d3.scale.linear().domain([4, 27]))
+			.compose([
+			    dc.lineChart(this.lineAggregation).group(years["2015"]),
+			    dc.lineChart(this.lineAggregation).group(years["2016"])
+			]);*/
+			
+			/*
+			.x(xa)
+			.renderHorizontalGridLines(true)
+			.colors(d3.scale.ordinal().range(['yellow']));*/
+
+/*		this.lineAggregation
+			.on('preRender', function(chart) {
+				chart
+				.xUnits(d3.time.months)
+				.xAxis(d3.svg.axis()
+					.scale(xa)
+					.orient("bottom")
+					.ticks(d3.time.months)
+					.tickFormat(d3.time.format("%b") )
+				);
+			});
+
+        this.lineAggregation
 		.filterPrinter(function(f) {
 			dashBoard.selectedFilters.startDate=f[0][0];
             dashBoard.selectedFilters.endDate=f[0][1];
 			return f[0][0].toLocaleDateString() + ' - ' + f[0][1].toLocaleDateString();
-		});
+		});*/
 
 		// -----------------------------------------------------------------------
-
-//        this.compositeBarChartPRODES
-        // "DESMATAMENTO_CR":0,"CORTE_SELETIVO":0,"DEGRADACAO":0,"CS_DESORDENADO":0,"DESMATAMENTO_VEG":0,"MINERACAO":0
-        var DESMATAMENTO_CR = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["date"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	/*
-        	var r=0;
-        	if(d.className=="DESMATAMENTO_CR") {
-        		r=d.area;
-        	}*/
-            return d.c1;
-        });
-        
-        var CORTE_SELETIVO = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["date"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	/*
-        	var r=0;
-        	if(d.className=="CORTE_SELETIVO") {
-        		r=d.area;
-        	}*/
-            return d.c2;
-        });
-        /*
-        var DEGRADACAO = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["month"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	var r=0;
-        	if(d.n) {
-        		r=d["DEGRADACAO"];
-        	}
-            return r;
-        });
-        
-        var CS_DESORDENADO = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["month"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	var r=0;
-        	if(d.n) {
-        		r=d["CS_DESORDENADO"];
-        	}
-            return r;
-        });
-        
-        var DESMATAMENTO_VEG = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["month"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	var r=0;
-        	if(d.n) {
-        		r=d["DESMATAMENTO_VEG"];
-        	}
-            return r;
-        });
-        
-        var MINERACAO = dc.barChart(this.compositeBarChartPRODES)
-        .gap(65)
-        .dimension(dimensions["month"])
-        .group(totalAreaByMonthGroup)
-        .valueAccessor(function (d) {
-        	var r=0;
-        	if(d.n) {
-        		r=d["MINERACAO"];
-        	}
-            return r;
-        });
-        */
-        this.compositeBarChartPRODES
-        .elasticY(true)
-        .x(x)
-        .xUnits(d3.time.months)
-        .round(d3.time.month.round)
-        .renderHorizontalGridLines(true)
-        .compose([DESMATAMENTO_CR, CORTE_SELETIVO])
-        .brushOn(false);//, DEGRADACAO, CS_DESORDENADO, DESMATAMENTO_VEG, MINERACAO])
-        
-        /*.margins({top: 10, right: 15, bottom: 35, left: 40})
-        .x(d3.scale.linear().domain([0,12]))
-        .brushOn(false)
-        .dimension(dimensions["month"])
-        .group(groups["area"])
-        .elasticY(true);*/
-        
-        // End compositeBarChartPRODES
-		// -----------------------------------------------------------------------
-        
+		
 		// build graph areas or alerts by class
 		dashBoard.utils.setTitle('class','%Dim% por classes');
 
@@ -516,15 +612,15 @@ var dashBoard={
 
 		// build download data
 		d3.select('#download')
-		    .on('click', function() {
-		    	dashBoard.jsonData.forEach(function(d) {
-				    delete d.timestamp;
-				    d.areaKm = d.areaKm.toFixed(4);
-				    d.uc = ((d.uc!='null')?(d.uc):(''));
-				});
-		        var blob = new Blob([d3.csv.format(dashBoard.jsonData)], {type: "text/csv;charset=utf-8"});
-		        saveAs(blob, 'data.csv');
-		    });
+	    .on('click', function() {
+	    	dashBoard.jsonData.forEach(function(d) {
+			    delete d.timestamp;
+			    d.areaKm = d.areaKm.toFixed(4);
+			    d.uc = ((d.uc!='null')?(d.uc):(''));
+			});
+	        var blob = new Blob([d3.csv.format(dashBoard.jsonData)], {type: "text/csv;charset=utf-8"});
+	        saveAs(blob, 'data.csv');
+	    });
 		
 		dc.renderAll();
 		window.onresize=this.utils.onResize;
