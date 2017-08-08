@@ -1,5 +1,5 @@
 body{
-	background-color: white;
+	background-color: #EBFFCB;
 }
 .container{
 	margin-right: 10px;
@@ -11,4 +11,8 @@ body{
 }
 circle, .dot {
 	r: 5px;
+}
+.dc-chart .pie-slice{
+	fill: black;
+	font-size: smaller;
 }
