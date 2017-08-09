@@ -10,43 +10,50 @@
 <body>
 <div class="container">
 	<div class="row">
+		<div class="col-md-12 info">
+			<span>Evolução das detecções do projeto DETER-B distribuidos por ano PRODES (Agosto a Julho)</span>
+		</div>
 		<div class="col-md-12">
-			<div id="test"></div>
-			<div id="test-overview"></div>
+			<div id="agreg">
+				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+					<a href="javascript:utils.resetFilter('agreg','agrega');">limpar</a>
+				</div>
+			</div>
+			<div id="agreg-overview"></div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12 info" style="margin-bottom: 20px;">
+		<span>Filtros por Estados, Classes e ano PRODES (Agosto a Julho)</span>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-4">
-			<div id="chart-by-state"></div>
+			<div id="chart-by-state">
+				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+					<a href="javascript:utils.resetFilter('state');">limpar</a>
+				</div>
+			</div>
 		</div>
 		<div class="col-md-4">
-			<div id="chart-by-class"></div>
+			<div id="chart-by-class">
+				<div class="reset" style="visibility: hidden;">Filtro: <span class="filter"></span>
+					<a href="javascript:utils.resetFilter('class');">limpar</a>
+				</div>
+			</div>
 		</div>
 		<div class="col-md-4">
-			<div id="chart-by-year"></div>
+			<div id="chart-by-year">
+				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
+					<a href="javascript:utils.resetFilter('year');;">limpar</a>
+				</div>
+			</div>
 		</div>
 	</div>
+	<div class="row">
+		<div id="generation_date" class="col-md-12 footer"></div>
+	</div>
 </div>
-
-<!--
-<table border="1" style="width: 95%; height: 250px;">
-	<tr><td>
-		<div>
-			Ano:<select id="years" multiple="multiple" onchange="graph.filterByYear(this);">
-			<optgroup label="Multiseleção"></optgroup></select>
-			Classes:<select id="classes" multiple="multiple" onchange="graph.filterByClass(this);">
-			<optgroup label="Multiseleção"></optgroup></select>
-			Estados:<select id="states" multiple="multiple" onchange="graph.filterByState(this);">
-			<optgroup label="Multiseleção"></optgroup></select>
-			<input type="button" onclick="graph.filterAll()" value="reset">
-		</div>
-	</td></tr>
-	<tr><td>
-	Filtros:
-	<div id="filter-output"></div>
-	</td></tr>
-</table>
--->
 <script type="text/javascript" src="./libs/d3/v3/d3.js"></script>
 <script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
 <script type="text/javascript" src="./libs/dc-2.1/dc.js"></script>

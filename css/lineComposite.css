@@ -12,7 +12,24 @@ body{
 circle, .dot {
 	r: 5px;
 }
-.dc-chart .pie-slice{
+.reset, .dc-chart .pie-slice, .dc-chart g.row text{
 	fill: black;
 	font-size: smaller;
+}
+.reset{
+	position: absolute;
+	bottom: 85px;
+}
+.info{
+	text-align: center;
+	font-size: large;
+	font-weight: bold;
+	border-bottom: 1px solid #ccc;
+	padding-bottom: 5px;
+}
+.footer{
+	text-align: center;
+	white-space: nowrap;
+	color: gray;
+	background-color: black;
 }

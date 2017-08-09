@@ -1,11 +1,30 @@
-var focusChart = dc.seriesChart("#test", "agrega");
-var overviewChart = dc.seriesChart("#test-overview", "agrega");
+
+var focusChart = dc.seriesChart("#agreg", "agrega");
+var overviewChart = dc.seriesChart("#agreg-overview", "agrega");
 var ringTotalizedByState = dc.pieChart("#chart-by-state", "filtra");
-var ringTotalizedByClass = dc.pieChart("#chart-by-class", "filtra");
+var rowTotalizedByClass = dc.rowChart("#chart-by-class", "filtra");
 var barAreaByYear = dc.barChart("#chart-by-year", "filtra");
 var ndx0,ndx1, temporalDimension, yearDimension, monthDimension, ufDimension, classDimension;
 var areaGroup, ufGroup, classGroup, yearGroup;
 var utils = {
+		config:{},
+		setConfig: function(config) {
+			this.config=config;
+		},
+		onResize:function(event) {
+			clearTimeout(utils.config.resizeTimeout);
+  			utils.config.resizeTimeout = setTimeout(utils.renderAll, 100);
+		},
+		renderAll:function() {
+			dc.renderAll("agrega");
+			dc.renderAll("filtra");
+			utils.addGenerationDate();
+		},
+		addGenerationDate: function() {
+			var now=new Date();
+			var footer='Gerado por INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
+			document.getElementById("generation_date").innerHTML=footer;
+		},
 		/*
 		 * Remove numeric values less than 1e-6
 		 */
@@ -33,27 +52,6 @@ var utils = {
 	    },
 		xaxis:function(d) {
 			switch (d) {
-			/* case 1:
-				return 'Jan';
-				break;
-			case 2:
-				return 'Fev';
-				break;
-			case 3:
-				return 'Mar';
-				break;
-			case 4:
-				return 'Abr';
-				break;
-			case 5:
-				return 'Mai';
-				break;
-			case 6:
-				return 'Jun';
-				break;
-			case 7:
-				return 'Jul';
-				break; */
 			case 8:
 				return 'Ago';
 				break;
@@ -134,6 +132,22 @@ var utils = {
 	},
 	fakeYears: function(y) {
 		return "20"+y+"/20"+(y+1);
+	},
+	resetFilter: function(who,group) {
+		var g=(typeof group === 'undefined')?("filtra"):(group);
+		if(who=='state'){
+			ringTotalizedByState.filterAll();
+		}else if(who=='class'){
+			rowTotalizedByClass.filterAll();
+		}else if(who=='year'){
+			barAreaByYear.filterAll();
+		}else if(who=='agreg'){
+			overviewChart.filterAll();
+			focusChart.filterAll();
+			monthDimension.filterAll();
+			dc.redrawAll("filtra");
+		}
+		dc.redrawAll(g);
 	},
 	getClasses: function() {
 		return classDimension.group().all();
@@ -271,7 +285,7 @@ var graph = {
 			focusChart.filterAll();
 			overviewChart.filterAll();
 			ringTotalizedByState.filterAll();
-			ringTotalizedByClass.filterAll();
+			rowTotalizedByClass.filterAll();
 			barAreaByYear.filterAll();
 			
 			dc.redrawAll();
@@ -298,7 +312,8 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 	}
 	data = o;
 
-	var w=window.innerWidth - 100, h=window.innerHeight * 0.4;
+	var w=parseInt(window.innerWidth - (window.innerWidth * 0.08)),
+	h=parseInt(window.innerHeight * 0.3);
 	
 	ndx0 = crossfilter(data);
 	ndx1 = crossfilter(data);
@@ -331,7 +346,6 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 	monthDimension = ndx1.dimension(function(d) {
 		var m=utils.fakeMonths(d.Month);
 		return m;
-		//return d.Month;
 	});
 	
 	ufDimension = ndx1.dimension(function(d) {
@@ -368,25 +382,20 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 				.brushOn(false);
 			return ch;
 		})*/
-		//.x(d3.time.scale().domain([new Date('2016-08-01'),new Date('2017-07-31')]))
-		//.x(d3.scale.linear().domain([0,13]))
 		.x(d3.scale.linear().domain([8,19]))
 		.renderHorizontalGridLines(true)
 		.renderVerticalGridLines(true)
 		.brushOn(false)
-		.yAxisLabel("Total Area (km²)")
-		.xAxisLabel("Months")
+		.yAxisLabel("Área total (km²)")
+		.xAxisLabel("Meses")
 		.elasticY(true)
 		.yAxisPadding('10%')
 		.dimension(temporalDimension)
 		.group(areaGroup)
-		//.group(utils.removeLittlestValues(areaGroup))
-		//.brushOn(true)// seleciona área mas não aplica zoom 
-		//.mouseZoomable(true)
 		.rangeChart(overviewChart)
 		.title(function(d) {
 			return utils.xaxis(d.key[1]) + " - " + d.key[0]
-			+ "\nÁrea: " + Math.abs(+(d.value.toFixed(2))) + " Km²";
+			+ "\nÁrea: " + Math.abs(+(d.value.toFixed(2))) + " km²";
 		})
 		.seriesAccessor(function(d) {
 			return d.key[0];
@@ -397,7 +406,7 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 		.valueAccessor(function(d) {
 			return Math.abs(+(d.value.toFixed(2)));
 		})
-		.legend(dc.legend().x(w-200).y(10).itemHeight(15).gap(5).horizontal(1).legendWidth(200).itemWidth(80));
+		.legend(dc.legend().x(w-200).y(30).itemHeight(15).gap(5).horizontal(1).legendWidth(200).itemWidth(80));
 
 	focusChart.yAxis().tickFormat(function(d) {
 		return d3.format(',d')(d);
@@ -410,9 +419,10 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 	focusChart.margins().top += 30;
 	
 	focusChart.on('filtered', function(chart) {
-		monthDimension.filterRange([chart.filter()[0], (chart.filter()[1]+1) ]);
-		dc.redrawAll("filtra");
-	    //console.log(chart.filter()[0] + "-" + chart.filter()[1]);
+		if(chart.filter()) {
+			monthDimension.filterRange([chart.filter()[0], (chart.filter()[1]+1) ]);
+			dc.redrawAll("filtra");
+		}
 	});
 
 	focusChart.colorAccessor(function(d) {
@@ -424,18 +434,24 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 			i++;
 		}
 	});
+
+	focusChart.filterPrinter(function(filters) {
+		var fp=utils.xaxis(filters[0][0])+" - "+utils.xaxis(filters[0][1]);
+		return fp;
+	});
 	
 	overviewChart
 		.width(w)
 	    .height(80)
 	    .chart(function(c,_,_,i) {
 		    var chart = dc.lineChart(c);
-		    if(i===0)
+		    if(i===0) {
 		    	chart.on('filtered', function (chart) {
 		            if (!chart.filter()) {
 		                dc.events.trigger(function () {
 		                    overviewChart.focusChart().x().domain(overviewChart.focusChart().xOriginalDomain());
 		                    overviewChart.focusChart().redraw();
+		                    focusChart.filterAll();
 		                    monthDimension.filterAll();
 		                    dc.redrawAll("filtra");
 		                });
@@ -445,16 +461,15 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 		                });
 		            }
 		        });
-
+		    }
 		    return chart;
 	    })
 	    .x(d3.scale.linear().domain([8,19]))
 	    .brushOn(true)
-	    .xAxisLabel("Months")
-	    .clipPadding(10)
+	    .xAxisLabel("Seleção temporal (granularidade mensal)")
+	    .clipPadding(5)
 	    .dimension(temporalDimension)
 		.group(areaGroup)
-		//.group(utils.removeLittlestValues(areaGroup))
 	    .seriesAccessor(function(d) {
 			return d.key[0];
 		})
@@ -470,7 +485,6 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 		return d3.format(',d')(d);
 	});
 	overviewChart.xAxis().tickFormat(function(d) {
-		//return d;
 		return utils.xaxis(d);
 	});
 
@@ -481,96 +495,64 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
     	}
 	);
 
-	overviewChart.on('filtered', function(chart, filter) {
-		var rangeFilter = chart.filter();
-		var focusFilter = chart.focusChart().filter();
-		if (focusFilter && !rangeFilter) {
-			dc.events.trigger(function () {
-				console.log("trigger to overviewChart.renderlet");
-				//chart.focusChart().replaceFilter(rangeFilter);
-			});
-		}
-		/*
-		if(chart.hasFilter()) {
-			if(!chart.filters()[0].isFiltered()) {
-				console.log("NoFiltered");
-			}else{
-				console.log("Filtered");
-			}
-		}
-		*/
-	});
+	var fw=parseInt((w-100)/3),
+	fh=parseInt((window.innerHeight - h) * 0.5);
 
-	/*
-	focusChart.on('renderlet', function(chart) {
-    // smooth the rendering through event throttling
-		dc.events.trigger(function(){
-			if(!overviewChart.filter()) {
-				console.log('NoFiltered');
-			}else{
-				console.log('Filtered');
-			}
-		});
-	});*/
-
-/*
-	overviewChart
-		.on('renderlet', function(chart,filter) {
-			console.log('renderlet:'+(chart.hasFilter()?"hasFilter":"NoFilter"));
-			
-			if(chart.hasFilter()) {
-				chart.needRedraw=true;
-				return;
-			}
-			if(chart.needRedraw) {
-				chart.needRedraw=false;
-				dc.redrawAll("filtra");
-			}
-		});
-*/
 	ringTotalizedByState
-		.height(350)
-		.width(550)
-		.innerRadius(25)
-		.externalRadiusPadding(60)
+		.height(fh)
+		.width(fw)
+		.innerRadius(10)
+		.externalRadiusPadding(30)
 		.dimension(ufDimension)
 		.group(ufGroup)
 		.title(function(d) {
-			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " Km²";
+			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
 		})
-		//.group(utils.snapToZero(ufGroup))
-		//.colors(d3.scale.category20())
-		.ordinalColors(["#0000FF","#56B2EA","#00FFFF","#F8B700","#78CC00","#FF00FF","#FF0000","#FFFF00","#00FF00"])
+		.label(function(d) {
+			return d.key + ":" + parseInt(Math.round(+d.value));
+		})
+		.ordinalColors(["#FF0000","#FFFF00","#FF00FF","#F8B700","#78CC00","#00FFFF","#56B2EA","#0000FF","#00FF00"])
 		.legend(dc.legend());
-		// .externalLabels(30) and .drawPaths(true) to enable external labels
 
-	ringTotalizedByClass
-		.height(350)
-		.width(550)
-		.innerRadius(25)
-		.externalRadiusPadding(60)
+	rowTotalizedByClass
+		.height(fh)
+		.width(fw)
 		.dimension(classDimension)
-		//.group(classGroup)
 		.group(utils.snapToZero(classGroup))
 		.title(function(d) {
-			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " Km²";
+			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
 		})
-		//.colors(d3.scale.category20())
-		.ordinalColors(["#0000FF","#56B2EA","#00FFFF","#F8B700","#78CC00","#FF00FF","#FF0000","#FFFF00","#00FF00"])
-		//.legend(dc.legend().x(0).y(0).itemHeight(10).gap(2).horizontal(1).legendWidth(450).itemWidth(130));
-		.legend(dc.legend());
+		.label(function(d) {
+			return d.key + ": " + parseInt(Math.round(+d.value)) + " km²";
+		})
+		.elasticX(true)
+		.ordinalColors(["#FF0000","#FFFF00","#FF00FF","#F8B700","#78CC00","#00FFFF","#56B2EA","#0000FF","#00FF00"])
+		.ordering(function(d) {
+			return -d.value;
+		})
+		.controlsUseVisibility(true);
+
+	rowTotalizedByClass.xAxis().tickFormat(function(d) {
+		var t=parseInt(d/1000);
+		t=(t<=1?t:t+"k");
+		return t;
+	}).ticks(5);
 
 	barAreaByYear
-		.height(350)
-		.width(400)
-		.yAxisLabel("Área (Km²)")
-		.xAxisLabel("Year (PRODES)")
+		.height(fh)
+		.width(fw)
+		.yAxisLabel("Área (km²)")
+		.xAxisLabel("Ano (PRODES)")
 		.dimension(yearDimension)
 		.group(utils.snapToZero(yearGroup))
 		.title(function(d) {
-			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " Km²";
+			return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
+		})
+		.label(function(d) {
+			return parseInt(Math.round(+d.data.value));
 		})
 		.elasticY(true)
+		.yAxisPadding('10%')
 		.x(d3.scale.ordinal())
         .xUnits(dc.units.ordinal)
         .barPadding(0.2)
@@ -646,6 +628,7 @@ d3.json("data/deter_month_dashboard1.json", function(error, data) {
 			dc.redrawAll("agrega");
 		});
 	});
-	dc.renderAll("agrega");
-	dc.renderAll("filtra");
+	utils.renderAll();
 });
+
+window.onresize=utils.onResize;
