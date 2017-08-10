@@ -3,20 +3,23 @@
 <head>
     <title>dc.js - Series Example</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css">
-   	<link rel="stylesheet" type="text/css" href="./libs/dc-2.1/dc.css"/>
-   	<link rel="stylesheet" type="text/css" href="./css/lineComposite.css">
+    <link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css" />
+   	<link rel="stylesheet" type="text/css" href="./libs/dc-2.1/dc.css" />
+   	<link rel="stylesheet" type="text/css" href="./css/lineComposite.css" />
+   	<link rel="stylesheet" type="text/css" href="./css/lineCompositePrint.css" media="print" />
 </head>
 <body>
 <div class="container">
 	<div class="row">
-		<div class="col-md-12 info">
+		<div class="col-md-12 info" style="margin-bottom: 3px;">
 			<span>Evolução das detecções do projeto DETER-B distribuidos por ano PRODES (Agosto a Julho)</span>
+			<span id="btn_print" onclick="window.print();" class="glyphicon glyphicon-print btn_tools" aria-hidden="true" title="Imprimir esta página utilizando o recurso do navegador."></span>
+			<span id="btn_down" onclick="" class="glyphicon glyphicon-download-alt btn_tools" aria-hidden="true" title="Baixar os dados brutos, utilizados neste painel, em formato CSV."></span>
 		</div>
 		<div class="col-md-12">
 			<div id="agreg">
-				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
-					<a href="javascript:utils.resetFilter('agreg','agrega');">limpar</a>
+				<div class="reset" style="display: none;"><b>Filtro:</b> <span class="filter"></span>
+					<a href="javascript:graph.resetFilter('agreg','agrega');">limpar</a>
 				</div>
 			</div>
 			<div id="agreg-overview"></div>
@@ -30,31 +33,35 @@
 	<div class="row">
 		<div class="col-md-4">
 			<div id="chart-by-state">
-				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
-					<a href="javascript:utils.resetFilter('state');">limpar</a>
+				<div class="reset" style="display: none;"><b>Filtro:</b> <span class="filter"></span>
+					<a href="javascript:graph.resetFilter('state');">limpar</a>
 				</div>
 			</div>
 		</div>
 		<div class="col-md-4">
 			<div id="chart-by-class">
-				<div class="reset" style="visibility: hidden;">Filtro: <span class="filter"></span>
-					<a href="javascript:utils.resetFilter('class');">limpar</a>
+				<div class="reset" style="visibility: hidden;"><b>Filtro:</b> <span class="filter"></span>
+					<a href="javascript:graph.resetFilter('class');">limpar</a>
 				</div>
 			</div>
 		</div>
 		<div class="col-md-4">
 			<div id="chart-by-year">
-				<div class="reset" style="display: none;">Filtro: <span class="filter"></span>
-					<a href="javascript:utils.resetFilter('year');;">limpar</a>
+				<div class="reset" style="display: none;"><b>Filtro:</b> <span class="filter"></span>
+					<a href="javascript:graph.resetFilter('year');">limpar</a>
 				</div>
 			</div>
 		</div>
 	</div>
 	<div class="row">
-		<div id="generation_date" class="col-md-12 footer"></div>
+		<div class="col-md-12">
+			<div id="footer_print"></div>
+		</div>
 	</div>
 </div>
+<div id="footer_page"></div>
 <script type="text/javascript" src="./libs/d3/v3/d3.js"></script>
+<script type="text/javascript" src="./libs/d3/d3js.pt-br.js"></script>
 <script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
 <script type="text/javascript" src="./libs/dc-2.1/dc.js"></script>
 <script type="text/javascript" src="./js/lineComposite.js"></script>

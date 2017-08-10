@@ -1,0 +1,15 @@
+body{
+	background-color: #FFF;
+	zoom:85%;
+}
+.btn_tools{display:none;}
+.info{margin: 0px;}
+#footer_print{
+	display: inline-block;
+	text-align: center;
+	color: gray;
+	border-top: rgb(187, 224, 123) solid 1px;
+}
+#footer_page{
+	display: none;
+}
