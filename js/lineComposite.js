@@ -1,7 +1,35 @@
 var utils = {
 	config:{},
+	printWindow:null,
+	statusPrint:false,
 	setConfig: function(config) {
 		utils.config=config;
+	},
+	setPagePrint:function() {
+		// 1670px
+		// 780px
+		utils.statusPrint=false;
+		utils.printWindow = window.open(window.location.href, "printpage", "width=1670, height=780");
+		utils.printWindow.focus();
+		utils.printWindow.printNow=function(){
+			if(!utils.statusPrint) {
+				utils.statusPrint=true;
+				utils.printWindow.print();
+			}
+		};
+	},
+	btnPrintPage:function() {
+		d3.select('#btn_print')
+	    .on('click', function() {
+	    	window.print();
+	    });
+	},
+	btnDownload:function() {
+		d3.select('#btn_down')
+	    .on('click', function() {
+	        var blob = new Blob([d3.csv.format(graph.data)], {type: "text/csv;charset=utf-8"});
+	        saveAs(blob, 'deter-b-agregado-mensal.csv');
+	    });
 	},
 	onResize:function(event) {
 		clearTimeout(utils.config.resizeTimeout);
@@ -14,12 +42,15 @@ var utils = {
 	},
 	rebuildAll: function() {
 		utils.updateDimensions();
-		graph.build();	
+		graph.build();
 	},
 	renderAll:function() {
 		dc.renderAll("agrega");
 		dc.renderAll("filtra");
 		utils.addGenerationDate();
+		if(parent.opener && parent.opener.utils.printWindow) {
+			setTimeout(parent.opener.utils.printWindow.printNow,1000);
+		}
 	},
 	// Used to update the footer position and date.
 	addGenerationDate: function() {
@@ -29,7 +60,7 @@ var utils = {
 			return;
 		}
 		var h=( (window.document.body.clientHeight>window.innerHeight)?(window.document.body.clientHeight):(window.innerHeight - 20) );
-		footer_page.style.top=h+"px";
+		//footer_page.style.top=h+"px";
 		footer_print.style.width=window.innerWidth+"px";
 		var now=new Date();
 		var footer='Gerado por INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
@@ -164,6 +195,8 @@ var graph={
 	classDimension: null,
 	classGroup: null,
 	
+	data:null,
+	
 	winWidth: window.innerWidth,
 	winHeight: window.innerHeight,
 	
@@ -223,6 +256,7 @@ var graph={
 		graph.build();
 	},
 	registerDataOnCrossfilter: function(data) {
+		graph.data=data;
 		var ndx0 = crossfilter(data),
 		ndx1 = crossfilter(data);
 		
@@ -389,10 +423,12 @@ var graph={
 	    	}
 		);
 
-		var minWidth=250,fw=parseInt((w)/3),
+		var minWidth=250, maxWidth=600, fw=parseInt((w)/3),
 		fh=parseInt((this.winHeight - h) * 0.5);
 		// define min width to filter graphs
 		fw=((fw<minWidth)?(minWidth):(fw));
+		// define max width to filter graphs
+		fw=((fw>maxWidth)?(maxWidth):(fw));
 
 		this.ringTotalizedByState
 			.height(fh)
@@ -529,6 +565,8 @@ var graph={
 	init: function() {
 		window.onresize=utils.onResize;
 		this.loadData();
+		utils.btnPrintPage();
+		utils.btnDownload();
 	},
 	/*
 	 * Called from the UI controls to clear one specific filter.
