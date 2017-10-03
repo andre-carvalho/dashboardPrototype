@@ -1,0 +1,54 @@
+body{
+	background-color: #EBFFCB;
+}
+.container{
+	margin-right: 10px;
+	margin-left: 10px;
+	width: 99%;
+}
+.btn_tools{
+	position: absolute;
+	cursor: pointer;
+	top: inherit;
+}
+#btn_print{
+	right: 27px;
+}
+#btn_down{
+	right: 4px;
+}
+.dc-chart path.line {
+	stroke-width: 3px;
+}
+.dc-chart rect.bar {
+	fill-opacity: 0.8;
+}
+.reset, .dc-chart .pie-slice, .dc-chart g.row text{
+	fill: black;
+	font-size: smaller;
+}
+.reset{
+	background-color: rgb(220, 241, 186);
+	border-radius: 8px;
+	border: rgb(187, 224, 123) solid 1px;
+}
+.info{
+	text-align: center;
+	font-size: large;
+	font-weight: bold;
+	border-bottom: 1px solid #ccc;
+	padding-bottom: 5px;
+}
+#footer_page{
+	text-align: center;
+	color: gray;
+	position: absolute;
+	width: 98%;
+	border-top: rgb(187, 224, 123) solid 1px;
+	left: 1%;
+	right: 1%;
+	bottom: 0px;
+}
+#footer_print{
+	display: none;
+}

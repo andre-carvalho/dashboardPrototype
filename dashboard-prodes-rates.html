@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PRODES - taxas</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./libs/bootstrap/bootstrap-3.2.0.min.css" />
+   	<link rel="stylesheet" type="text/css" href="./libs/dc-2.1/dc.css" />
+   	<link rel="stylesheet" type="text/css" href="./css/dashboard-prodes-rates.css" />
+</head>
+<body>
+<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12 info" style="margin-bottom: 3px;">
+				<span>Taxas de desmatamento na Amazonia Legal - Projeto PRODES</span>
+			</div>
+			<div class="col-md-9">
+				<div id="chart-by-year">
+					<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
+						<a href="javascript:graph.resetFilter('year');">limpar</a>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3">
+				<div id="chart-by-state">
+					<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
+						<a href="javascript:graph.resetFilter('state');">limpar</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="col-md-12">
+				<div id="footer_print"></div>
+			</div>
+		</div>
+</div>
+<div id="footer_page"></div>
+<script type="text/javascript" src="./libs/d3/v3/d3.js"></script>
+<script type="text/javascript" src="./libs/d3/d3js.pt-br.js"></script>
+<script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
+<script type="text/javascript" src="./libs/dc-2.1/dc.js"></script>
+<script type="text/javascript" src="./js/dashboard-prodes-rates.js"></script>
+
+</body>
+</html>
