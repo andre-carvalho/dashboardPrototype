@@ -1,5 +1,5 @@
 body{
-	/* background-color: rgb(243, 243, 243); */
+	background-color: #EBFFCB;
 }
 .container{
 	margin-right: 10px;
@@ -20,8 +20,8 @@ body{
 .dc-chart path.line {
 	stroke-width: 3px;
 }
-circle, .dot {
-	r: 5px;
+.dc-chart rect.bar {
+	fill-opacity: 0.8;
 }
 .reset, .dc-chart .pie-slice, .dc-chart g.row text{
 	fill: black;

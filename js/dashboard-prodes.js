@@ -60,7 +60,7 @@ var graph={
 	winWidth: window.innerWidth,
 	winHeight: window.innerHeight,
 	
-	pallet: ["#ff5500","#FFFF00","#FF00FF","#F8B700","#78CC00","#00FFFF","#56B2EA","#007eff","#00FF00","#ceff00"],
+	pallet: ["#FF0000","#FF4500","#ff6a00","#FF8C00","#FFA500","#FFD700","#FFFF00","#DA70D6","#BA55D3","#7B68EE"],
 	
 	setDimensions: function(dim) {
 		this.winWidth=dim.w;
@@ -173,15 +173,7 @@ var graph={
 	        .barPadding(0.2)
 			.outerPadding(0.1)
 			.renderHorizontalGridLines(true)
-			.colorAccessor(function(d) {
-				var i=0,l=barColors.length;
-				while(i<l){
-					if(barColors[i].key==d.key){
-						return barColors[i].color;
-					}
-					i++;
-				}
-			});
+			.ordinalColors(["gold"]);
 
 		this.barAreaByYear.margins().left += 30;
 	
