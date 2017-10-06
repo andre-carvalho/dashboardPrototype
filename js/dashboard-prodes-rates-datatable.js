@@ -44,9 +44,6 @@ var graph={
 		this.winHeight=dim.h;
 	},
 	setChartReferencies: function() {
-
-		this.barRateByYear = dc.barChart("#chart-by-year");
-		this.pieTotalizedByState = dc.pieChart("#chart-by-state");
 		this.dataTable = dc.dataTable("#data-table");
 	},
 	loadData: function() {
@@ -131,63 +128,6 @@ var graph={
 		var fw=parseInt(w),
 		fh=parseInt((this.winHeight - h) * 0.6);
 
-		var years=graph.yearDimension.group().all(),
-		startYear = new Date(years[0].key);
-		startYear.setYear(startYear.getYear()-1);
-
-		var x = d3.time.scale().domain([startYear,years[years.length-1].key]);
-
-		this.barRateByYear
-			.height(fh)
-			.width(parseInt( (fw/4) * 3))
-			.yAxisLabel("Área (km²)")
-			.xAxisLabel(years[0].key.getFullYear() + " - " + years[years.length-1].key.getFullYear())
-			.dimension(this.yearDimension)
-			.group(this.yearRateGroup)
-			.title(function(d) {
-				return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
-			})
-			.label(function(d) {
-				return parseInt(Math.round(+d.data.value));
-			})
-			.elasticY(true)
-			.yAxisPadding('10%')
-			.x(x)
-	        .barPadding(0.3)
-			.outerPadding(0.1)
-			.renderHorizontalGridLines(true)
-			.ordinalColors(["gold"]);
-
-		this.barRateByYear.margins().left += 30;
-
-		this.barRateByYear
-		.on('preRender', function(chart) {
-			chart
-			.xUnits(d3.time.years)
-			.xAxis(d3.svg.axis()
-				.scale(x)
-				.orient("bottom")
-				.ticks(d3.time.years)
-				.tickFormat(d3.time.format("%Y"))
-			);
-		});
-
-		this.pieTotalizedByState
-			.height(fh)
-			.width(parseInt(fw/4))
-			.innerRadius(10)
-			.externalRadiusPadding(30)
-			.dimension(this.ufDimension)
-			.group(this.ufRateGroup)
-			.title(function(d) {
-				return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
-			})
-			.label(function(d) {
-				return d.key + ":" + parseInt(Math.round(+d.value));
-			})
-			.ordinalColors(graph.pallet)
-			.legend(dc.legend());
-
 			/*
 			this.dataTable
 				.width(fw)
@@ -262,17 +202,6 @@ var graph={
 	init: function() {
 		window.onresize=utils.onResize;
 		this.loadData();
-	},
-	/*
-	 * Called from the UI controls to clear one specific filter.
-	 */
-	resetFilter: function(who) {
-		if(who=='year'){
-			graph.barRateByYear.filterAll();
-		}else if(who=='state'){
-			graph.pieTotalizedByState.filterAll();
-		}
-		dc.redrawAll();
 	}
 };
 

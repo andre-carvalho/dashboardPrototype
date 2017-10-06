@@ -52,3 +52,7 @@ body{
 #footer_print{
 	display: none;
 }
+#data-table, td, th {
+	padding: 5px;
+	border: solid 1px black;
+}
