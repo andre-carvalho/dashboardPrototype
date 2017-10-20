@@ -11,19 +11,25 @@
 <div class="container-fluid">
 		<div class="row">
 			<div class="col-md-12 info" style="margin-bottom: 3px;">
-				<span>Evolução do desmatamento na Amazonia Legal - Projeto PRODES</span>
+				<span>Incremento anual do desmatamento na Amazonia Legal - Projeto PRODES</span>
 			</div>
 			<div class="col-md-6">
 				<div id="chart-by-year">
-					<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
-						<a href="javascript:graph.resetFilter('year');">limpar</a>
+					<div id="title-chart-by-year" class="all-charts-title"></div>
+					<div class="keep-space">
+						<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
+							<a href="javascript:graph.resetFilter('year');">limpar</a>
+						</div>
 					</div>
 				</div>
 			</div>
 			<div class="col-md-6">
 				<div id="chart-by-state">
-					<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
-						<a href="javascript:graph.resetFilter('state');">limpar</a>
+					<div id="title-chart-by-state" class="all-charts-title"></div>
+					<div class="keep-space">
+						<div class="reset" style="display:none;"><b>Filtro:</b> <span class="filter"></span>
+							<a href="javascript:graph.resetFilter('state');">limpar</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -32,6 +38,7 @@
 		<div class="row">
 			<div class="col-md-6">
 				<div id="chart-by-mun">
+					<div id="title-chart-by-mun" class="all-charts-title"></div>
 					<div class="reset" style="visibility: hidden;"><b>Filtro:</b> <span class="filter"></span>
 						<a href="javascript:graph.resetFilter('mun');">limpar</a>
 					</div>
@@ -39,6 +46,7 @@
 			</div>
 			<div class="col-md-6">
 				<div id="chart-by-uc">
+					<div id="title-chart-by-uc" class="all-charts-title"></div>
 					<div class="reset" style="visibility: hidden;"><b>Filtro:</b> <span class="filter"></span>
 						<a href="javascript:graph.resetFilter('uc');">limpar</a>
 					</div>

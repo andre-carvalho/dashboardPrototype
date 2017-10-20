@@ -82,9 +82,6 @@ var graph={
 		this.ufDimension = ndx.dimension(function(d) {
 			return d.uf;
 		});
-		this.rateDimension = ndx.dimension(function(d) {
-			return d.rate;
-		});
 
 		this.yearRateGroup = this.yearDimension.group().reduceSum(function(d) {
 			return +d.rate;
@@ -92,34 +89,6 @@ var graph={
 		this.ufRateGroup = this.ufDimension.group().reduceSum(function(d) {
 			return +d.rate;
 		});
-
-
-		this.yearStateDimension = ndx.dimension(function(d){
-			return d.yearState;
-		});
-		this.yearStateGroup = this.yearStateDimension.group().reduceSum(function(d) {
-			return +d.rate;
-		});
-
-
-
-    	this.yearRateGroupTable = this.ufDimension.group().reduce(
-          function (p, v) {
-              ++p.number;
-              p.total += +v.rate;
-              p.avg = Math.round(p.total / p.number);
-              return p;
-          },
-          function (p, v) {
-              --p.number;
-              p.total -= +v.rate;
-              p.avg = (p.number == 0) ? 0 : Math.round(p.total / p.number);
-              return p;
-          },
-          function () {
-              return {number: 0, total: 0, avg: 0}
-      });
-      this.yearRateRank = function (p) { return "Rate rank" };
 
 	},
 	build: function() {
@@ -187,76 +156,7 @@ var graph={
 			})
 			.ordinalColors(graph.pallet)
 			.legend(dc.legend());
-
-			/*
-			this.dataTable
-				.width(fw)
-			    .height(fh)
-			    .dimension(this.yearRateGroupTable)
-			    .group(this.yearRateRank)
-			    .columns([function (d) { return d.key; },
-			              function (d) { return d.value.number; },
-			              function (d) { return d.value.avg; }])
-			    .sortBy(function (d) {
-					return d.value.avg;
-				})
-			    .order(d3.descending);
-			*/
-
-			var yearCols=[];
-			yearCols.push({
-				label: 'State',
-				format: function(d) {
-					return d.uf;
-				}
-			});
-			var ctl=[];
-			this.yearStateGroup.all().forEach(
-				function (y) {
-					if(ctl.indexOf(y.key.split("/")[1])<0) {
-						ctl.push(y.key.split("/")[1]);
-						yearCols.push({
-							label: y.key.split("/")[1],
-							format: function(d) {
-								return +d.rate;
-							}
-						});
-					}
-				}
-			);
-
-			this.dataTable
-			    .dimension(this.ufRateGroup)
-			    .group(function(d) {
-					return d.uf;
-			    })
-			    .sortBy(function(d) {
-					return +d.year;
-				})
-			    .showGroups(false)
-				.columns(yearCols);
-				/*
-			    .columns([
-			              {
-			                  label: 'State',
-			                  format: function(d) {
-			                      return d.uf;
-			                  }
-			              },
-			              {
-			                  label: 'Rate (km²)',
-			                  format: function(d) {
-			                      return d.rate + ' km²';
-			                  }
-			              },
-			              {
-			                  label: 'Year',
-			                  format: function(d) {
-			                      return d.year.getFullYear();
-			                  }
-			              }]);
-			*/
-
+			
 		dc.renderAll();
 	},
 	init: function() {

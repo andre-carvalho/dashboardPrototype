@@ -1,5 +1,6 @@
 body{
-	background-color: #EBFFCB;
+	background-color: #FFFFFF;
+	font-size: x-small;
 }
 .container{
 	margin-right: 10px;
@@ -39,6 +40,13 @@ body{
 	border-bottom: 1px solid #ccc;
 	padding-bottom: 5px;
 }
+.table-header{
+	font-weight:bold;
+	background-color: rgba(130, 179, 181, 0.49);
+}
+.keep-space{
+	height: 18px;
+}
 #footer_page{
 	text-align: center;
 	color: gray;
@@ -51,8 +59,4 @@ body{
 }
 #footer_print{
 	display: none;
-}
-#data-table, td, th {
-	padding: 5px;
-	border: solid 1px black;
 }

@@ -18,6 +18,10 @@ var utils = {
 		utils.updateDimensions();
 		graph.build();
 	},
+	setTitle:function(elementId, title) {
+		elementId='title-chart-by-'+elementId;
+		document.getElementById(elementId).innerHTML=title;
+	},
 	/*
 	 * Remove numeric values less than 1e-6
 	 */
@@ -147,17 +151,25 @@ var graph={
 		this.setChartReferencies();
 		
 		var minWidth=250, maxWidth=600, fw=parseInt((w)/2),
-		fh=parseInt((this.winHeight - h) * 0.6);
+		fh=parseInt((this.winHeight - h) * 0.5);
 		// define min width to filter graphs
 		fw=((fw<minWidth)?(minWidth):(fw));
 		// define max width to filter graphs
 		fw=((fw>maxWidth)?(maxWidth):(fw));
+		
+		// to single column in main container
+		var chartByYear=document.getElementById('chart-by-year')
+		if((chartByYear.clientWidth*2) > window.document.body.clientWidth) {
+			fw = chartByYear.clientWidth;
+		}
 
+		utils.setTitle('year','Incremento anual no desmatamento da Amazonia Legal');
+		
 		this.barAreaByYear
 			.height(fh)
 			.width(fw)
-			.yAxisLabel("Área (km²)")
-			.xAxisLabel("Ano")
+			.yAxisLabel("Incremento no desmatamento (km²)")
+			.xAxisLabel("Ano de apuração do incremento")
 			.dimension(this.yearDimension)
 			.group(utils.snapToZero(this.yearAreaMunGroup))
 			.title(function(d) {
@@ -177,6 +189,8 @@ var graph={
 
 		this.barAreaByYear.margins().left += 30;
 	
+		utils.setTitle('state','Incremento total do desmatamento por Estado');
+		
 		this.pieTotalizedByState
 			.height(fh)
 			.width(fw)
@@ -193,6 +207,9 @@ var graph={
 			.ordinalColors(graph.pallet)
 			.legend(dc.legend());
 
+		
+		utils.setTitle('mun','Top 10 - Participação dos municípios no desmatamento');
+		
 		this.rowTop10ByMun
 			.height(fh)
 			.width(fw)
@@ -218,10 +235,14 @@ var graph={
 		});
 
 		this.rowTop10ByMun.xAxis().tickFormat(function(d) {
-			var t=parseInt(d/1000);
-			t=(t<=1?t:t+"k");
-			return t;
+			/*var t=d/1000;
+			t=(t<1?d:t+"k");
+			return t;*/
+			return d;
 		}).ticks(5);
+		
+		
+		utils.setTitle('uc','Top 10 - Desmatamento sobre Áreas de Proteção Ambiental');
 		
 		this.rowTop10ByUc
 			.height(fh)
@@ -248,9 +269,10 @@ var graph={
 		});
 		
 		this.rowTop10ByUc.xAxis().tickFormat(function(d) {
-			var t=parseInt(d/1000);
-			t=(t<=1?t:t+"k");
-			return t;
+			/*var t=d/1000;
+			t=(t<1?d:t+"k");
+			return t;*/
+			return d;
 		}).ticks(5);
 		
 		dc.renderAll();

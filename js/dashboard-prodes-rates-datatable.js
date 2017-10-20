@@ -10,7 +10,7 @@ var utils = {
 		utils.config.resizeTimeout = setTimeout(utils.rebuildAll, 200);
 	},
 	updateDimensions: function() {
-		var d={w: window.innerWidth,
+		var d={ w: window.innerWidth,
 				h: window.innerHeight};
 		graph.setDimensions(d);
 	},
@@ -23,49 +23,64 @@ var utils = {
 var graph={
 
 	barRateByYear: null,
+	lineRateStatesByYear: null,
 	pieTotalizedByState: null,
+	dataTable: null,
 
 	yearDimension: null,
 	ufDimension: null,
+	ufYearDimension: null,
+	stateYearDimension: null,
+
 	yearRateGroup: null,
 	ufRateGroup: null,
-	yearRateGroupTable: null,
-	yearRateRank: null,
+	stateYearRateGroup: null,
 
 	data:null,
+	data_all:null,
 
 	winWidth: window.innerWidth,
 	winHeight: window.innerHeight,
 
-	pallet: ["#FF0000","#FF4500","#ff6a00","#FF8C00","#FFA500","#FFD700","#FFFF00","#DA70D6","#BA55D3","#7B68EE"],
+	pallet: ["#FF0000","#FF6A00","#FF8C00","#FFA500","#FFD700","#FFFF00","#DA70D6","#BA55D3","#7B68EE"],
 
 	setDimensions: function(dim) {
 		this.winWidth=dim.w;
 		this.winHeight=dim.h;
 	},
 	setChartReferencies: function() {
-		this.dataTable = dc.dataTable("#data-table");
+
+		this.barRateByYear = dc.barChart("#chart-by-year");
+		this.lineRateStatesByYear = dc.seriesChart("#chart-by-year-state");
+		this.pieTotalizedByState = dc.pieChart("#chart-by-state");
+		this.dataTable = dataTable("data-table");
 	},
 	loadData: function() {
 		// baixar os dados do PRODES!!
+		// http://terrabrasilis.info/fip-service/fip-project-prodes/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=fip-project-prodes:prodes_rates_d&outputFormat=csv
+		d3.csv("data/prodes_rates_d.csv", graph.processData);
 		// http://terrabrasilis.info/prodes-data/PRODES/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=PRODES:prodes_rates_d&outputFormat=application%2Fjson
-		d3.json("data/prodes_rates.json", graph.processData);
+		//d3.json("data/prodes_rates.json", graph.processData);
 	},
 	processData: function(error, data) {
 		if (error) throw error;
 
-		var o=[];
-		for (var j = 0, n = data.totalFeatures; j < n; ++j) {
-			var fet=data.features[j];
-			var dt=new Date(fet.properties.year.replace('Z', 'T22:00:00.000Z'));
-			o.push({
-				uf:fet.properties.state,
-				year:dt,
-				rate:+fet.properties.rate,
-				yearState:fet.properties.state + '/' + dt.getFullYear()
-			});
+		var o=[],t=[];
+		for (var j = 0, n = data.length; j < n; ++j) {
+			var obj={
+				uf:data[j].state,
+				year:data[j].year,
+				rate:+data[j].rate,
+				ufYear:data[j].state + "/" + data[j].year
+			};
+			if(data[j].state=='AMZ') {
+				t.push(obj);
+			}else{
+				o.push(obj);
+			}
 		}
 		data = o;
+		graph.data_all = t;
 		graph.registerDataOnCrossfilter(data);
 		graph.build();
 	},
@@ -79,8 +94,11 @@ var graph={
 		this.ufDimension = ndx.dimension(function(d) {
 			return d.uf;
 		});
-		this.rateDimension = ndx.dimension(function(d) {
-			return d.rate;
+		this.ufYearDimension = ndx.dimension(function(d) {
+			return d.ufYear;
+		});
+		this.stateYearDimension = ndx.dimension(function(d) {
+			return [d.uf, +d.year];
 		});
 
 		this.yearRateGroup = this.yearDimension.group().reduceSum(function(d) {
@@ -89,35 +107,35 @@ var graph={
 		this.ufRateGroup = this.ufDimension.group().reduceSum(function(d) {
 			return +d.rate;
 		});
-
-
-		this.yearStateDimension = ndx.dimension(function(d){
-			return d.yearState;
-		});
-		this.yearStateGroup = this.yearStateDimension.group().reduceSum(function(d) {
+		this.stateYearRateGroup = this.stateYearDimension.group().reduceSum(function(d) {
 			return +d.rate;
 		});
-
-
-
-    	this.yearRateGroupTable = this.ufDimension.group().reduce(
-          function (p, v) {
-              ++p.number;
-              p.total += +v.rate;
-              p.avg = Math.round(p.total / p.number);
-              return p;
-          },
-          function (p, v) {
-              --p.number;
-              p.total -= +v.rate;
-              p.avg = (p.number == 0) ? 0 : Math.round(p.total / p.number);
-              return p;
-          },
-          function () {
-              return {number: 0, total: 0, avg: 0}
-      });
-      this.yearRateRank = function (p) { return "Rate rank" };
-
+	},
+	buildDataTable: function() {
+		var data2Table=[], yearFilter=[];
+		graph.ufYearDimension.bottom(Infinity).forEach(
+			function (y) {
+				data2Table.push({
+					uf:y.uf,
+					year:y.year,
+					rate:y.rate
+				});
+				if(yearFilter.indexOf(y.year) < 0) {
+					yearFilter.push(y.year);
+				}
+			}
+		);
+		graph.data_all.forEach(function(da){
+			if(yearFilter.indexOf(da.year) >= 0) {
+				data2Table.push({
+					uf:da.uf,
+					year:da.year,
+					rate:da.rate
+				});
+			}
+		});
+		graph.dataTable.init(data2Table);
+		graph.dataTable.redraw();
 	},
 	build: function() {
 		var w=parseInt(this.winWidth - (this.winWidth * 0.05)),
@@ -128,80 +146,124 @@ var graph={
 		var fw=parseInt(w),
 		fh=parseInt((this.winHeight - h) * 0.6);
 
-			/*
-			this.dataTable
-				.width(fw)
-			    .height(fh)
-			    .dimension(this.yearRateGroupTable)
-			    .group(this.yearRateRank)
-			    .columns([function (d) { return d.key; },
-			              function (d) { return d.value.number; },
-			              function (d) { return d.value.avg; }])
-			    .sortBy(function (d) {
-					return d.value.avg;
-				})
-			    .order(d3.descending);
-			*/
+		var years=graph.yearDimension.group().all();
 
-			var yearCols=[];
-			yearCols.push({
-				label: 'State',
-				format: function(d) {
-					return d.uf;
-				}
+		this.barRateByYear
+			.height(fh)
+			.width(parseInt( (fw/4) * 3))
+			.margins({top: 0, right: 10, bottom: 45, left: 45})
+			.yAxisLabel("Desmatamento (km²/ano)")
+			.xAxisLabel("Período de monitoramento da Amazônia Legal: " + years[0].key + " - " + years[years.length-1].key)
+			.dimension(this.yearDimension)
+			.group(this.yearRateGroup)
+			.title(function(d) {
+				return "Área: " + Math.abs(+(d.value.toFixed(1))) + " km²";
+			})
+			.label(function(d) {
+				var t=Math.abs((d.data.value/1000).toFixed(1));
+				t=(t<1?parseInt(d.data.value):t+"k");
+				return t;
+			})
+			.elasticY(true)
+			.clipPadding(10)
+			.yAxisPadding('10%')
+			.x(d3.scale.ordinal())
+	        .xUnits(dc.units.ordinal)
+	        .barPadding(0.3)
+			.outerPadding(0.1)
+			.renderHorizontalGridLines(true)
+			.ordinalColors(["gold"]);
+
+		this.barRateByYear
+			.on("renderlet.a",function (chart) {
+				// rotate x-axis labels
+				chart.selectAll('g.x text')
+					.attr('transform', 'translate(-15,7) rotate(315)');
 			});
-			var ctl=[];
-			this.yearStateGroup.all().forEach(
-				function (y) {
-					if(ctl.indexOf(y.key.split("/")[1])<0) {
-						ctl.push(y.key.split("/")[1]);
-						yearCols.push({
-							label: y.key.split("/")[1],
-							format: function(d) {
-								return +d.rate;
-							}
-						});
-					}
-				}
-			);
 
-			this.dataTable
-			    .dimension(this.ufRateGroup)
-			    .group(function(d) {
-					return d.uf;
-			    })
-			    .sortBy(function(d) {
-					return +d.year;
-				})
-			    .showGroups(false)
-				.columns(yearCols);
-				/*
-			    .columns([
-			              {
-			                  label: 'State',
-			                  format: function(d) {
-			                      return d.uf;
-			                  }
-			              },
-			              {
-			                  label: 'Rate (km²)',
-			                  format: function(d) {
-			                      return d.rate + ' km²';
-			                  }
-			              },
-			              {
-			                  label: 'Year',
-			                  format: function(d) {
-			                      return d.year.getFullYear();
-			                  }
-			              }]);
-			*/
 
+		this.lineRateStatesByYear
+			.width(fw)
+			.height(fh)
+			.margins({top: 0, right: 10, bottom: 45, left: 45})
+			.chart(function(c) { return dc.lineChart(c).interpolate('cardinal'); })
+			.x(d3.scale.ordinal())
+	        .xUnits(dc.units.ordinal)
+			.brushOn(true)
+			.yAxisLabel("Desmatamento (km²/ano)")
+			.xAxisLabel("Período de monitoramento da Amazônia Legal: " + years[0].key + " - " + years[years.length-1].key)
+			.renderHorizontalGridLines(true)
+			.renderVerticalGridLines(true)
+			.title(function(d) {
+				return "Área/"+d.key[1]+": " + Math.abs(+(d.value.toFixed(2))) + " km²";
+			})
+			.elasticY(true)
+			.yAxisPadding('10%')
+			.dimension(this.stateYearDimension)
+			.group(this.stateYearRateGroup)
+			.mouseZoomable(false)
+			.seriesAccessor(function(d) {
+				return d.key[0];
+			})
+			.keyAccessor(function(d) {
+				return +d.key[1];
+			})
+			.valueAccessor(function(d) {
+				return +d.value;
+			})
+			.ordinalColors(graph.pallet)
+			.seriesSort(function(a,b) {
+				var rank=graph.ufRateGroup.top(Infinity);
+				var sr=[];
+				rank.forEach(function(d){
+					sr[d.key]=+d.value;
+				});
+				return d3.descending(sr[a], sr[b]);
+			})
+			.legend(dc.legend().x(fw - graph.lineRateStatesByYear.margins().right - 40).y(5).itemHeight(13).gap(7).horizontal(0).legendWidth(50).itemWidth(40));
+
+		this.lineRateStatesByYear
+			.on("renderlet.a",function (chart) {
+				// rotate x-axis labels
+				chart.selectAll('g.x text')
+					.attr('transform', 'translate(-15,7) rotate(315)');
+			});
+
+		this.pieTotalizedByState
+			.height(fh)
+			.width(parseInt(fw/4))
+			.innerRadius(10)
+			.externalRadiusPadding(30)
+			.dimension(this.ufDimension)
+			.group(this.ufRateGroup)
+			.title(function(d) {
+				return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
+			})
+			.label(function(d) {
+				return d.key + ":" + parseInt(Math.round(+d.value));
+			})
+			.ordinalColors(graph.pallet)
+			.legend(dc.legend().x(1).y(5).itemHeight(13).gap(7).horizontal(0).legendWidth(50).itemWidth(40));
+		
+		this.pieTotalizedByState.on("postRedraw", this.buildDataTable);
+			
 		dc.renderAll();
+		this.buildDataTable();
 	},
 	init: function() {
 		window.onresize=utils.onResize;
 		this.loadData();
+	},
+	/*
+	 * Called from the UI controls to clear one specific filter.
+	 */
+	resetFilter: function(who) {
+		if(who=='year'){
+			graph.barRateByYear.filterAll();
+		}else if(who=='state'){
+			graph.pieTotalizedByState.filterAll();
+		}
+		dc.redrawAll();
 	}
 };
 
