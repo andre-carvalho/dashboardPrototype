@@ -14,9 +14,37 @@ var utils = {
 				h: window.innerHeight};
 		graph.setDimensions(d);
 	},
+	setDinamicTexts: function() {
+		var startYear=graph.yearDimension.bottom(1),
+		endYear=graph.yearDimension.top(1);
+		var yearRange = document.getElementById('year-range');
+		yearRange.innerText=startYear[0].year+" - "+endYear[0].year;
+	},
+	totalRateCalculator: function() {
+		var itens=graph.ufRateGroup.top(Infinity);
+		var t=0;
+		itens.forEach(function(d){
+			t+=d.value;
+		});
+		return t;
+	},
 	rebuildAll: function() {
 		utils.updateDimensions();
 		graph.build();
+	},
+	addGenerationDate: function() {
+		var footer_page=document.getElementById("footer_page");
+		var footer_print=document.getElementById("footer_print");
+		if(!footer_page || !footer_print) {
+			return;
+		}
+		var h=( (window.document.body.clientHeight>window.innerHeight)?(window.document.body.clientHeight):(window.innerHeight - 20) );
+		footer_page.style.top=h+"px";
+		footer_print.style.width=window.innerWidth+"px";
+		var now=new Date();
+		var footer='Gerado pelo INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a target="blank_" href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
+		footer_page.innerHTML=footer;
+		footer_print.innerHTML=footer;
 	}
 };
 
@@ -112,13 +140,18 @@ var graph={
 		});
 	},
 	buildDataTable: function() {
-		var data2Table=[], yearFilter=[];
+		var data2Table=[], yearFilter=[], total=[], ufList=[];
 		graph.ufYearDimension.bottom(Infinity).forEach(
 			function (y) {
+				if(!total[y.uf]) {
+					total[y.uf]=0;
+					ufList.push(y.uf);
+				}
+				total[y.uf]+=y.rate;
 				data2Table.push({
 					uf:y.uf,
 					year:y.year,
-					rate:y.rate
+					rate:localeBR.numberFormat(',1f')(y.rate)
 				});
 				if(yearFilter.indexOf(y.year) < 0) {
 					yearFilter.push(y.year);
@@ -127,21 +160,36 @@ var graph={
 		);
 		graph.data_all.forEach(function(da){
 			if(yearFilter.indexOf(da.year) >= 0) {
+				if(!total[da.uf]) {
+					total[da.uf]=0;
+					ufList.push(da.uf);
+				}
+				total[da.uf]+=da.rate;
 				data2Table.push({
 					uf:da.uf,
 					year:da.year,
-					rate:da.rate
+					rate:localeBR.numberFormat(',1f')(da.rate)
 				});
 			}
 		});
+		ufList.forEach(function(uf){
+
+			data2Table.push({
+				uf:uf,
+				year:'Total:',
+				rate:localeBR.numberFormat(',1f')(total[uf])
+			});
+		});
 		graph.dataTable.init(data2Table);
 		graph.dataTable.redraw();
+		utils.addGenerationDate();
 	},
 	build: function() {
 		var w=parseInt(this.winWidth - (this.winWidth * 0.05)),
 		h=parseInt(this.winHeight * 0.3);
 
 		this.setChartReferencies();
+		utils.setDinamicTexts();
 
 		var fw=parseInt(w),
 		fh=parseInt((this.winHeight - h) * 0.6);
@@ -157,11 +205,11 @@ var graph={
 			.dimension(this.yearDimension)
 			.group(this.yearRateGroup)
 			.title(function(d) {
-				return "Área: " + Math.abs(+(d.value.toFixed(1))) + " km²";
+				return "Área: " + localeBR.numberFormat(',1f')(Math.abs(+(d.value.toFixed(1)))) + " km²";
 			})
 			.label(function(d) {
 				var t=Math.abs((d.data.value/1000).toFixed(1));
-				t=(t<1?parseInt(d.data.value):t+"k");
+				t=(t<1?localeBR.numberFormat(',1f')(parseInt(d.data.value)):localeBR.numberFormat(',1f')(t)+"k");
 				return t;
 			})
 			.elasticY(true)
@@ -189,13 +237,15 @@ var graph={
 			.chart(function(c) { return dc.lineChart(c).interpolate('cardinal'); })
 			.x(d3.scale.ordinal())
 	        .xUnits(dc.units.ordinal)
-			.brushOn(true)
+			.brushOn(false)
 			.yAxisLabel("Desmatamento (km²/ano)")
 			.xAxisLabel("Período de monitoramento da Amazônia Legal: " + years[0].key + " - " + years[years.length-1].key)
 			.renderHorizontalGridLines(true)
 			.renderVerticalGridLines(true)
 			.title(function(d) {
-				return "Área/"+d.key[1]+": " + Math.abs(+(d.value.toFixed(2))) + " km²";
+				return "Estado: "+ d.key[0] + "\n" +
+					"Ano: "+ d.key[1] + "\n" +
+					"Área: " + localeBR.numberFormat(',1f')(Math.abs(+(d.value.toFixed(2)))) + " km²";
 			})
 			.elasticY(true)
 			.yAxisPadding('10%')
@@ -237,10 +287,14 @@ var graph={
 			.dimension(this.ufDimension)
 			.group(this.ufRateGroup)
 			.title(function(d) {
-				return "Área: " + Math.abs(+(d.value.toFixed(2))) + " km²";
+				var t=utils.totalRateCalculator();
+				t = "Porcentagem: " + localeBR.numberFormat(',1f')((d.value * 100 / t).toFixed(1)) + " %";
+				t = "Estado: " + d.key + "\n" + t + "\n";
+				return t + "Área: " + localeBR.numberFormat(',1f')(Math.abs(+(d.value.toFixed(2)))) + " km²";
 			})
 			.label(function(d) {
-				return d.key + ":" + parseInt(Math.round(+d.value));
+				var t=utils.totalRateCalculator();
+				return d.key + ":" + localeBR.numberFormat(',1f')((d.value * 100 / t).toFixed(1)) + " %";
 			})
 			.ordinalColors(graph.pallet)
 			.legend(dc.legend().x(1).y(5).itemHeight(13).gap(7).horizontal(0).legendWidth(50).itemWidth(40));

@@ -1,6 +1,5 @@
 body{
 	background-color: #FFFFFF;
-	font-size: x-small;
 }
 .container{
 	margin-right: 10px;
@@ -24,14 +23,16 @@ body{
 .dc-chart rect.bar {
 	fill-opacity: 0.8;
 }
-.reset, .dc-chart .pie-slice, .dc-chart g.row text{
+.dc-chart .pie-slice, .dc-chart g.row text{
 	fill: black;
-	font-size: smaller;
+	font-size: medium;
 }
 .reset{
 	background-color: rgb(220, 241, 186);
 	border-radius: 8px;
 	border: rgb(187, 224, 123) solid 1px;
+	fill: black;
+	font-size: x-small;
 }
 .info{
 	text-align: center;
