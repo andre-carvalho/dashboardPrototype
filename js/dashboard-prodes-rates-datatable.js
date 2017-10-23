@@ -42,7 +42,7 @@ var utils = {
 		//footer_page.style.top=h+"px";
 		footer_print.style.width=window.innerWidth+"px";
 		var now=new Date();
-		var footer='Gerado pelo INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a target="blank_" href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
+		var footer='Gerado por INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a target="blank_" href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
 		footer_page.innerHTML=footer;
 		footer_print.innerHTML=footer;
 	}
