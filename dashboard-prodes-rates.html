@@ -8,10 +8,10 @@
    	<link rel="stylesheet" type="text/css" href="./css/dashboard-prodes-rates.css" />
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
 		<div class="row">
 			<div class="col-md-12 info" style="margin-bottom: 3px;">
-				<span>Taxas de desmatamento na Amazonia Legal - Projeto PRODES</span>
+				<span>Taxas de desmatamento anual na Amazonia Legal - Projeto PRODES</span>
 			</div>
 			<div class="col-md-9">
 				<div id="chart-by-year">
@@ -37,13 +37,47 @@
 			  <div id="chart-by-year-state"></div>
 		  </div>
 		</div>
+		
 		<div class="row">
 			<div class="col-md-12 info" style="margin-bottom: 3px;">
-				<span>Taxas anuais do desmatamento - <span id="year-range"></span> (Km2/ano)</span>
+				<span>Tabelas de taxas anuais e variação relativa de desmatamento na Amazonia Legal</span>
 			</div>
-		  <div class="col-md-12">
-			  <div id="data-table"></div>
-		  </div>
+		</div>
+		
+		<div class="row">
+			<div class="panel-group" id="accordion">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+							<span>Taxas anuais de desmatamento entre <span id="year-range"></span> (km2/ano)</span></a>
+							<span style="clear: both;color: black;position: relative;float: right;">
+								<button id="download" class="btn btn-success btn-lg btn-block" title="Baixar os dados da tabela, em formato CSV.">
+									Download CSV <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+								</button>
+							</span>
+						</h4>
+					</div>
+					<div id="collapse1" class="panel-collapse collapse">
+						<div class="panel-body">
+							<div id="rates-data-table"></div>
+						</div>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+							<span>Variação relativa da taxa anual de desmatamento (%)</span></a>
+						</h4>
+					</div>
+					<div id="collapse2" class="panel-collapse collapse">
+						<div class="panel-body">
+							<div id="relative-rates-data-table"></div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div class="row">
@@ -55,10 +89,12 @@
 <div id="footer_page"></div>
 <script type="text/javascript" src="./libs/d3/v3/d3.js"></script>
 <script type="text/javascript" src="./libs/d3/d3js.pt-br.js"></script>
+<script type="text/javascript" src="./libs/jquery/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./libs/bootstrap/bootstrap-3.2.0.min.js"></script>
 <script type="text/javascript" src="./libs/crossfilter/crossfilter.js"></script>
 <script type="text/javascript" src="./libs/dc-2.1/dc.js"></script>
+<script type="text/javascript" src="./libs/filesaver/FileSaver.js"></script>
 <script type="text/javascript" src="./js/prodesDataTable.js"></script>
-<!-- script type="text/javascript" src="./js/dashboard-prodes-rates.js"></script -->
 <script type="text/javascript" src="./js/dashboard-prodes-rates-datatable.js"></script>
 
 </body>

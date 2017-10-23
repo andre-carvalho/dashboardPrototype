@@ -39,7 +39,7 @@ var utils = {
 			return;
 		}
 		var h=( (window.document.body.clientHeight>window.innerHeight)?(window.document.body.clientHeight):(window.innerHeight - 20) );
-		footer_page.style.top=h+"px";
+		//footer_page.style.top=h+"px";
 		footer_print.style.width=window.innerWidth+"px";
 		var now=new Date();
 		var footer='Gerado pelo INPE/OBT/DPI/TerraBrasilis em '+now.toLocaleString()+' sob licença <a target="blank_" href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt_BR">CC BY-SA 4.0</a>';
@@ -53,7 +53,8 @@ var graph={
 	barRateByYear: null,
 	lineRateStatesByYear: null,
 	pieTotalizedByState: null,
-	dataTable: null,
+	ratesDataTable: null,
+	relativeRatesDataTable: null,
 
 	yearDimension: null,
 	ufDimension: null,
@@ -81,7 +82,8 @@ var graph={
 		this.barRateByYear = dc.barChart("#chart-by-year");
 		this.lineRateStatesByYear = dc.seriesChart("#chart-by-year-state");
 		this.pieTotalizedByState = dc.pieChart("#chart-by-state");
-		this.dataTable = dataTable("data-table");
+		this.ratesDataTable = dataTable("rates-data-table");
+		this.relativeRatesDataTable = dataTable("relative-rates-data-table");
 	},
 	loadData: function() {
 		// baixar os dados do PRODES!!
@@ -151,7 +153,8 @@ var graph={
 				data2Table.push({
 					uf:y.uf,
 					year:y.year,
-					rate:localeBR.numberFormat(',1f')(y.rate)
+					rate:localeBR.numberFormat(',1f')(y.rate),
+					originalRate:y.rate
 				});
 				if(yearFilter.indexOf(y.year) < 0) {
 					yearFilter.push(y.year);
@@ -168,21 +171,39 @@ var graph={
 				data2Table.push({
 					uf:da.uf,
 					year:da.year,
-					rate:localeBR.numberFormat(',1f')(da.rate)
+					rate:localeBR.numberFormat(',1f')(da.rate),
+					originalRate:da.rate
 				});
 			}
 		});
+		graph.data2csv=jQuery.extend(true, [], data2Table);
+		graph.buildVariationRatesDataTable(data2Table);
 		ufList.forEach(function(uf){
 
 			data2Table.push({
 				uf:uf,
-				year:'Total:',
+				year:'Acumulado:',
 				rate:localeBR.numberFormat(',1f')(total[uf])
 			});
 		});
-		graph.dataTable.init(data2Table);
-		graph.dataTable.redraw();
+		graph.ratesDataTable.init(data2Table);
+		graph.ratesDataTable.redraw();
 		utils.addGenerationDate();
+	},
+	buildVariationRatesDataTable: function(d) {
+		var data2Table=[], l=d.length;
+		for(var i=0;i<l;i++) {
+			if(d[i+1] && d[i].uf==d[i+1].uf) {
+				var rr=(d[i].originalRate>0)?( ( (100 - (d[i+1].originalRate*100/d[i].originalRate)) * (-1) ).toFixed(0) + '%'):('');
+				data2Table.push({
+					uf:d[i].uf,
+					year:d[i].year+'-'+d[i+1].year,
+					rate:rr
+				});
+			}
+		}
+		graph.relativeRatesDataTable.init(data2Table);
+		graph.relativeRatesDataTable.redraw();
 	},
 	build: function() {
 		var w=parseInt(this.winWidth - (this.winWidth * 0.05)),
@@ -200,7 +221,7 @@ var graph={
 			.height(fh)
 			.width(parseInt( (fw/4) * 3))
 			.margins({top: 0, right: 10, bottom: 45, left: 45})
-			.yAxisLabel("Desmatamento (km²/ano)")
+			.yAxisLabel("Desmatamento total anual (km²/ano)")
 			.xAxisLabel("Período de monitoramento da Amazônia Legal: " + years[0].key + " - " + years[years.length-1].key)
 			.dimension(this.yearDimension)
 			.group(this.yearRateGroup)
@@ -238,7 +259,7 @@ var graph={
 			.x(d3.scale.ordinal())
 	        .xUnits(dc.units.ordinal)
 			.brushOn(false)
-			.yAxisLabel("Desmatamento (km²/ano)")
+			.yAxisLabel("Desmatamento por Estado (km²/ano)")
 			.xAxisLabel("Período de monitoramento da Amazônia Legal: " + years[0].key + " - " + years[years.length-1].key)
 			.renderHorizontalGridLines(true)
 			.renderVerticalGridLines(true)
@@ -300,7 +321,42 @@ var graph={
 			.legend(dc.legend().x(1).y(5).itemHeight(13).gap(7).horizontal(0).legendWidth(50).itemWidth(40));
 		
 		this.pieTotalizedByState.on("postRedraw", this.buildDataTable);
-			
+		
+		// build download data
+		d3.select('#download')
+		    .on('click', function() {
+		    	var ufs=[],years=[],rates=[];
+		    	
+		    	graph.data2csv.forEach(function(d) {
+		    		if(ufs.indexOf(d.uf)<0){
+		    			ufs.push(d.uf);
+		    			rates[d.uf]=[]
+		    		}
+		    		if(years.indexOf(d.year)<0){
+		    			years.push(d.year);
+		    		}
+		    		
+	    			rates[d.uf][d.year]=d.originalRate;
+				});
+		    	var csv=[],aux={};
+		    	ufs.forEach(function(u) {
+			    	years.forEach(function(y) {
+			    		if(aux[y]) {
+			    			c=aux[y];
+			    		}else{
+			    			var c={};
+			    			c['year']=y;
+			    			aux[y]=c;
+			    		}
+			    		c[u]=rates[u][y];
+			    	});
+		    	});
+		    	for(var c in aux){if (aux.hasOwnProperty(c)) {csv.push(aux[c]);} }
+
+		        var blob = new Blob([d3.csv.format(csv)], {type: "text/csv;charset=utf-8"});
+		        saveAs(blob, 'taxas_anuais_prodes.csv');
+		    });
+		
 		dc.renderAll();
 		this.buildDataTable();
 	},
